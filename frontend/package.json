@@ -2,6 +2,11 @@
   "name": "ropiweb-frontend",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "npm@12.2.1",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0",
+    "npm": ">=12.2.1 <13"
+  },
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { CupCategory, CupEditionResults, CupTeamRegistration } from '@/types';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Trophy, 
   Users, 
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function RopikupaPage() {
+  const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'nevezes' | 'eredmenyek'>('nevezes');
   const [teams, setTeams] = useState<CupTeamRegistration[]>([]);
   const [results, setResults] = useState<CupEditionResults[]>([]);
@@ -29,14 +31,15 @@ export default function RopikupaPage() {
   const [teamName, setTeamName] = useState('');
   const [captainName, setCaptainName] = useState('');
   const [captainEmail, setCaptainEmail] = useState('');
-  const [playerCount, setPlayerCount] = useState<number>(6);
-  const [category, setCategory] = useState<CupCategory>('Vegyes');
+  const [members, setMembers] = useState<string[]>(['']);
   const [edition, setEdition] = useState('IV. VRK 2026');
   const [rulesAccepted, setRulesAccepted] = useState(false);
 
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [editingMembers, setEditingMembers] = useState<string[]>([]);
 
   // Accordion open states for previous results
   const [openEditions, setOpenEditions] = useState<Record<string, boolean>>({
@@ -77,6 +80,10 @@ export default function RopikupaPage() {
     e.preventDefault();
     setFormError(null);
     setFormSuccess(null);
+    if (!isAuthenticated) {
+      setFormError('A nevezéshez előbb be kell jelentkezned, hogy a csapatkapitány később módosíthassa a névsort.');
+      return;
+    }
 
     // Validation
     if (!teamName.trim()) {
@@ -91,8 +98,9 @@ export default function RopikupaPage() {
       setFormError('Kérjük, érvényes e-mail címet adj meg a csapatkapitánynak!');
       return;
     }
-    if (!playerCount || playerCount < 6 || playerCount > 14) {
-      setFormError('A játékosok létszáma 6 és 14 fő között kell legyen!');
+    const validMembers = members.map((member) => member.trim()).filter(Boolean);
+    if (validMembers.length < 6) {
+      setFormError('Legalább 6 csapattag nevét add meg!');
       return;
     }
     if (!rulesAccepted) {
@@ -107,8 +115,8 @@ export default function RopikupaPage() {
         teamName: teamName.trim(),
         captainName: captainName.trim(),
         captainEmail: captainEmail.trim(),
-        playerCount: Number(playerCount),
-        category,
+        members: validMembers.map((name) => ({ name })),
+        category: 'Vegyes',
         edition,
         rulesAccepted: true,
       });
@@ -118,7 +126,7 @@ export default function RopikupaPage() {
       setTeamName('');
       setCaptainName('');
       setCaptainEmail('');
-      setPlayerCount(6);
+      setMembers(['']);
       setRulesAccepted(false);
 
       // Refresh list
@@ -151,7 +159,7 @@ export default function RopikupaPage() {
             Villanykari Röpikupa (VRK)
           </h1>
           <p className="text-slate-600 mt-2 max-w-3xl text-sm sm:text-base">
-            A Villanykari Röpikupa a BME VIK legnagyobb hagyománnyal bíró röplabda megmérettetése. Regisztrálj csapatoddal a soron következő tornára, vagy böngészd a korábbi kupák aranyérmeseit!
+            Regisztrálj csapatoddal a soron következő tornára, vagy böngészd a korábbi kupák eredményeit!
           </p>
         </div>
 
@@ -263,41 +271,18 @@ export default function RopikupaPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Létszám */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                      Létszám (fő) <span className="text-red-500">*</span>
+                      Kategória
                     </label>
-                    <input
-                      type="number"
-                      required
-                      min={6}
-                      max={14}
-                      value={playerCount}
-                      onChange={(e) => setPlayerCount(parseInt(e.target.value) || 6)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
-                    />
-                    <span className="text-[11px] text-slate-400 mt-1 block">Min. 6, max. 14 fő</span>
+                    <div className="relative group">
+                      <div className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm bg-slate-50">Vegyes</div>
+                      <div className="absolute z-10 hidden group-hover:block left-0 top-full mt-1 p-3 rounded-lg bg-slate-900 text-white text-xs w-64 shadow-lg">
+                        A vegyes kategóriában legalább 1 lány részvétele kötelező.
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Kategória */}
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                      Kategória <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value as CupCategory)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm bg-white"
-                    >
-                      <option value="Vegyes">Vegyes (min. 2 lány a pályán)</option>
-                      <option value="Férfi">Férfi</option>
-                      <option value="Női">Női</option>
-                    </select>
-                  </div>
-
-                  {/* Kupa kiadás */}
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                       Kupa kiadás <span className="text-red-500">*</span>
@@ -310,6 +295,29 @@ export default function RopikupaPage() {
                       <option value="IV. VRK 2026">IV. VRK 2026 (Aktuális)</option>
                       <option value="V. VRK 2027">V. VRK 2027 (Előzetes)</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Csapatnévsor <span className="text-red-500">*</span>
+                    </label>
+                    <div className="space-y-2">
+                      {members.map((member, index) => (
+                        <input
+                          key={index}
+                          type="text"
+                          required
+                          placeholder={`${index + 1}. játékos neve`}
+                          value={member}
+                          onChange={(e) => setMembers((current) => current.map((item, i) => i === index ? e.target.value : item))}
+                          className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
+                        />
+                      ))}
+                      <button type="button" onClick={() => setMembers((current) => [...current, ''])} className="text-sm font-semibold text-vik-blue-700 hover:text-vik-blue-900">
+                        + Játékos hozzáadása
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1">Legalább 6 fő szükséges. A csapatkapitány később módosíthatja a névsort.</p>
                   </div>
                 </div>
 
@@ -349,6 +357,23 @@ export default function RopikupaPage() {
                   </button>
                 </div>
               </form>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8 border-t border-slate-200">
+                <div>
+                  <h2 className="font-bold text-slate-900 mb-3">A torna lebonyolítása</h2>
+                  <a href="/lebonyolitas.pdf" target="_blank" rel="noopener noreferrer" className="text-vik-blue-700 font-semibold hover:underline">Lebonyolítás megnyitása PDF-ben →</a>
+                  <p className="text-xs text-slate-500 mt-2">A részletes lebonyolítás PDF-ben olvasható.</p>
+                </div>
+                <div className="bg-vik-blue-900 text-white rounded-2xl p-6">
+                  <h2 className="font-bold mb-3">Legfontosabb szabályok</h2>
+                  <ul className="text-sm space-y-1 list-disc list-inside text-blue-100">
+                    <li>Minimum 1 lány kötelező.</li>
+                    <li>25 pontos, 1 nyert szettes meccsek.</li>
+                    <li>A fiúk támadhatnak hálótól, ha a két csapat megegyezik.</li>
+                    <li>Ha a labda plafonhoz ér és saját térfélre esik vissza, továbbjátszható.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
             {/* Right Column: Submitted Teams List */}
@@ -391,8 +416,22 @@ export default function RopikupaPage() {
                         </div>
                         <div className="text-xs text-slate-600 flex flex-wrap items-center justify-between gap-1">
                           <span>Kapitány: {t.captainName}</span>
-                          <span>{t.playerCount} fős keret</span>
+                          <span>{t.members?.length || t.playerCount || 0} fős keret</span>
                         </div>
+                        {user && t.captainUserId === Number(user.id) && t.id && (
+                          <div className="mt-2">
+                            {editingTeamId === t.id ? (
+                              <div className="space-y-2">
+                                {editingMembers.map((member, index) => (
+                                  <input key={index} value={member} onChange={(e) => setEditingMembers((current) => current.map((item, i) => i === index ? e.target.value : item))} className="w-full px-2 py-1 text-xs border rounded" />
+                                ))}
+                                <button onClick={async () => { await api.cup.updateMembers(t.id!, editingMembers); setEditingTeamId(null); setTeams(await api.cup.getTeams()); }} className="text-xs font-semibold text-emerald-700">Mentés</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => { setEditingTeamId(t.id!); setEditingMembers((t.members || []).map((member) => member.name)); }} className="text-xs font-semibold text-vik-blue-700 hover:underline">Névsor módosítása</button>
+                            )}
+                          </div>
+                        )}
                         <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400">
                           <span>{t.edition}</span>
                           <span className="font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
@@ -412,7 +451,7 @@ export default function RopikupaPage() {
                   <span>A torna lebonyolítása</span>
                 </div>
                 <p className="text-xs text-blue-100 leading-relaxed">
-                  Csoportmérkőzések után egyenes kieséses rendszerben dől el a trófea sorsa. Minden mérkőzést hivatalos egyetemi játékvezetők vezetnek. Az első három helyezett éremdíjazásban részesül!
+                  Csoportmérkőzések után egyenes kieséses rendszerben dől el a trófea sorsa. Az első három helyezett éremdíjazásban részesül.
                 </p>
               </div>
             </div>

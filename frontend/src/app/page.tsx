@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Training } from '@/types';
 import { api } from '@/lib/api';
 import TrainingCard from '@/components/TrainingCard';
@@ -9,7 +10,7 @@ import {
   Trophy, 
   Users, 
   Calendar, 
-  ArrowRight, 
+  Volleyball,
   Sparkles, 
   ShieldCheck, 
   Award,
@@ -40,16 +41,24 @@ export default function HomePage() {
     <div className="flex-1 flex flex-col">
       {/* Hero Section with Volleyball Gradient */}
       <section className="relative hero-gradient text-white overflow-hidden py-16 sm:py-24 border-b-4 border-vik-gold-500">
-        {/* Background decorative patterns */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-vik-gold-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
+          <div className="absolute right-0 bottom-[-3rem] hidden lg:block w-[26rem] h-[34rem] pointer-events-none opacity-90" aria-hidden="true">
+            <Image
+              src="/landing_kep.png"
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 26rem, 0px"
+              className="object-contain object-bottom"
+            />
+          </div>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-vik-blue-800/80 border border-blue-400/30 text-vik-gold-300 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
               <Sparkles className="w-4 h-4 text-vik-gold-400" />
-              <span>BME VIK hivatalos kari sportköre 2026</span>
+              <span>BME VIK Röplabda Kör</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
@@ -71,15 +80,15 @@ export default function HomePage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base font-bold text-slate-900 bg-vik-gold-500 hover:bg-vik-gold-400 shadow-lg shadow-vik-gold-500/20 transition-all transform hover:-translate-y-0.5"
               >
                 <span>Jelentkezz edzésre!</span>
-                <ArrowRight className="w-5 h-5" />
+                <Volleyball className="w-5 h-5" />
               </Link>
 
               <Link
                 href="/ropikupa"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm transition-all transform hover:-translate-y-0.5"
               >
-                <Trophy className="w-5 h-5 text-vik-gold-400" />
                 <span>Röpikupa nevezés</span>
+                <Trophy className="w-5 h-5 text-vik-gold-400" />
               </Link>
             </div>
           </div>
@@ -87,38 +96,40 @@ export default function HomePage() {
       </section>
 
       {/* Quick Stats Section */}
-      <section className="bg-white py-8 border-b border-slate-200 shadow-sm relative -mt-4 z-10 max-w-6xl mx-auto rounded-2xl px-6 sm:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-          {/* Stat 1 */}
-          <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-vik-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
-              <Users className="w-7 h-7" />
+      <section className="relative mt-8 z-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto bg-white py-8 border border-slate-200 shadow-sm rounded-2xl px-6 sm:px-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+            {/* Stat 1 */}
+            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-vik-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
+                <Users className="w-7 h-7" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">120+</div>
+                <div className="text-sm font-medium text-slate-600">Aktív tag és hallgató</div>
+              </div>
             </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">120+</div>
-              <div className="text-sm font-medium text-slate-600">Aktív tag és hallgató</div>
-            </div>
-          </div>
 
-          {/* Stat 2 */}
-          <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-              <Calendar className="w-7 h-7" />
+            {/* Stat 2 */}
+            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
+              <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                <Calendar className="w-7 h-7" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">4 alkalom / hét</div>
+                <div className="text-sm font-medium text-slate-600">Heti edzéslehetőség</div>
+              </div>
             </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">4 alkalom / hét</div>
-              <div className="text-sm font-medium text-slate-600">Heti edzéslehetőség</div>
-            </div>
-          </div>
 
-          {/* Stat 3 */}
-          <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-              <Trophy className="w-7 h-7" />
-            </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">IV. VRK 2026</div>
-              <div className="text-sm font-medium text-slate-600">Sikeres kupa kiadás</div>
+            {/* Stat 3 */}
+            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                <Trophy className="w-7 h-7" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">IV. VRK 2026</div>
+                <div className="text-sm font-medium text-slate-600">Sikeres kupa kiadás</div>
+              </div>
             </div>
           </div>
         </div>
@@ -188,7 +199,7 @@ export default function HomePage() {
               <div className="w-12 h-12 rounded-xl bg-vik-blue-100 text-vik-blue-700 flex items-center justify-center mb-4">
                 <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Hivatalos PEK Tagság</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Közösségünk</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
                 Körünk tagjaként igazolt közösségi és sporttevékenységet folytathatsz, amely a Schönherz Kollégiumi felvételinél is plusz pontot ér.
               </p>

@@ -34,12 +34,19 @@ export interface Training {
 
 export type CupCategory = 'Férfi' | 'Női' | 'Vegyes';
 
+export interface CupTeamMember {
+  id?: string;
+  name: string;
+}
+
 export interface CupTeamRegistration {
   id?: string;
   teamName: string;
   captainName: string;
   captainEmail: string;
-  playerCount: number;
+  captainUserId?: number;
+  members?: CupTeamMember[];
+  playerCount?: number;
   category: CupCategory;
   edition: string;
   rulesAccepted: boolean;

@@ -442,6 +442,8 @@ export default function AdminPage() {
                           className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm bg-white"
                         >
                           <option value="BME Sportközpont - BME Terem">BME Sportközpont - BME Terem</option>
+                          <option value="Bercsényi tornaterem">Bercsényi tornaterem</option>
+                          <option value="Kármán tornaterem">Kármán tornaterem</option>
                           <option value="Óbudai Egyetem Sportcsarnok">Óbudai Egyetem Sportcsarnok</option>
                           <option value="BME Strandröplabda pálya (Központi Kampusz)">BME Strandröplabda pálya</option>
                         </select>

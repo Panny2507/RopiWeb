@@ -9,7 +9,6 @@ import {
   Mail, 
   Lock, 
   User, 
-  CreditCard, 
   AlertCircle, 
   CircleDot, 
   Loader2 
@@ -22,8 +21,6 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [neptun, setNeptun] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,15 +52,6 @@ export default function RegisterPage() {
       setError('A jelszónak legalább 6 karakterből kell állnia!');
       return;
     }
-    if (password !== confirmPassword) {
-      setError('A megadott jelszavak nem egyeznek meg!');
-      return;
-    }
-    if (neptun && neptun.trim().length !== 6) {
-      setError('A Neptun kódnak pontosan 6 karakterből kell állnia (pl. QTLYQ6)!');
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -71,7 +59,6 @@ export default function RegisterPage() {
         name: name.trim(),
         email: email.trim(),
         password,
-        neptun: neptun.trim() ? neptun.trim().toUpperCase() : undefined,
       });
 
       // Auto-login succeeds, redirect to edzés page
@@ -143,24 +130,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Neptun kód (optional) */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Neptun kód <span className="text-slate-400 font-normal lowercase">(opcionális)</span>
-            </label>
-            <div className="relative">
-              <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                maxLength={6}
-                placeholder="pl. QTLYQ6"
-                value={neptun}
-                onChange={(e) => setNeptun(e.target.value.toUpperCase())}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm font-mono tracking-wider"
-              />
-            </div>
-          </div>
-
           {/* Jelszó */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
@@ -174,24 +143,6 @@ export default function RegisterPage() {
                 placeholder="Minimum 6 karakter"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Jelszó megerősítés */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-              Jelszó megerősítése <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
-                required
-                placeholder="Jelszó újra"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
               />
             </div>

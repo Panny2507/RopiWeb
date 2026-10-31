@@ -51,7 +51,6 @@ export default function LoginPage() {
 
     try {
       await login({ email: email.trim(), password });
-      router.push('/edzes');
     } catch (err: any) {
       setError(err.message || 'Hibás e-mail cím vagy jelszó!');
     } finally {
@@ -61,12 +60,12 @@ export default function LoginPage() {
 
   const handleQuickDemoLogin = async (demoEmail: string) => {
     setEmail(demoEmail);
-    setPassword('secret123');
+    const demoPassword = demoEmail === 'admin@ropikor.hu' ? 'admin123' : 'user123';
+    setPassword(demoPassword);
     setLoading(true);
     setError(null);
     try {
-      await login({ email: demoEmail, password: 'secret123' });
-      router.push('/edzes');
+      await login({ email: demoEmail, password: demoPassword });
     } catch (err: any) {
       setError(err.message || 'Hiba a bejelentkezés során.');
     } finally {
@@ -166,19 +165,19 @@ export default function LoginPage() {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => handleQuickDemoLogin('kovacs.peter@ropikor.hu')}
+              onClick={() => handleQuickDemoLogin('admin@ropikor.hu')}
               className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium text-left truncate flex items-center gap-1.5"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-vik-gold-600 shrink-0" />
-              <span className="truncate">Admin (Kovács Péter)</span>
+              <span className="truncate">Admin (admin@ropikor.hu)</span>
             </button>
             <button
               type="button"
-              onClick={() => handleQuickDemoLogin('vendeg@bme.hu')}
+              onClick={() => handleQuickDemoLogin('felhasznalo1@edu.bme.hu')}
               className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium text-left truncate flex items-center gap-1.5"
             >
               <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-              <span className="truncate">Tag (Teszt Vendég)</span>
+              <span className="truncate">Tag (Nagy Anna)</span>
             </button>
           </div>
         </div>

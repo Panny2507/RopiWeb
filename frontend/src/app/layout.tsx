@@ -5,9 +5,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'BME VIK Röplabda Kör | Hivatalos Weboldal',
+  title: 'BME VIK Röplabda Kör',
   description:
-    'A BME VIK Röplabda Kör hivatalos weboldala. Edzések, Villanykari Röpikupa nevezés, eredmények és köri hírek.',
+    'BME VIK Röplabda Kör: edzések, Villanykari Röpikupa nevezés, eredmények és köri hírek.',
   icons: {
     icon: '/favicon.ico',
   },

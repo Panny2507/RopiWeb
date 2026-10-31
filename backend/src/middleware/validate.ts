@@ -84,7 +84,7 @@ export function validateMessage(req: Request, res: Response, next: NextFunction)
  * Cup Team validation middleware
  */
 export function validateCupTeam(req: Request, res: Response, next: NextFunction) {
-  const { teamName, captainName, captainEmail, memberCount, category, cupEdition, acceptedRules } = req.body;
+  const { teamName, captainName, captainEmail, cupEdition, acceptedRules, members } = req.body;
 
   if (!teamName || typeof teamName !== 'string' || !teamName.trim()) {
     return res.status(400).json({ error: 'A csapatnév megadása kötelező' });
@@ -98,14 +98,8 @@ export function validateCupTeam(req: Request, res: Response, next: NextFunction)
     return res.status(400).json({ error: 'Érvényes csapatkapitányi email cím megadása kötelező' });
   }
 
-  const count = Number(memberCount);
-  if (!Number.isInteger(count) || count < 6) {
-    return res.status(400).json({ error: 'A csapat létszámának legalább 6 főnek kell lennie' });
-  }
-
-  const validCategories = ['FÉRFI', 'NŐI', 'VEGYES'];
-  if (!category || !validCategories.includes(category)) {
-    return res.status(400).json({ error: `A kategóriának a következők egyikének kell lennie: ${validCategories.join(', ')}` });
+  if (!Array.isArray(members) || members.some((member) => typeof member !== 'string' || !member.trim())) {
+    return res.status(400).json({ error: 'Legalább egy csapattag nevét add meg' });
   }
 
   if (!cupEdition || typeof cupEdition !== 'string' || !cupEdition.trim()) {

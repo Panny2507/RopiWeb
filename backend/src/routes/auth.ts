@@ -10,7 +10,7 @@ const router = Router();
 // POST /api/auth/register - Felhasználó regisztráció
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, neptunCode, position, isActiveMember } = req.body;
+    const { email, password, name, position, isActiveMember } = req.body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({ error: 'A név megadása kötelező' });
@@ -41,7 +41,7 @@ router.post('/register', async (req: Request, res: Response) => {
         password: hashedPassword,
         name: name.trim(),
         role: 'USER',
-        neptunCode: neptunCode ? String(neptunCode).trim().toUpperCase() : null,
+        neptunCode: null,
         position: position ? String(position).trim() : null,
         isActiveMember: Boolean(isActiveMember),
       },

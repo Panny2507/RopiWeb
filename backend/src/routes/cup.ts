@@ -19,6 +19,7 @@ router.get('/teams', async (req: Request, res: Response) => {
     const teams = await prisma.cupTeam.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
+      include: { members: { orderBy: { createdAt: 'asc' } } },
     });
 
     return res.status(200).json(teams);
@@ -31,19 +32,25 @@ router.get('/teams', async (req: Request, res: Response) => {
 // POST /api/cup/teams - Csapat nevezése a kupára (USER/ADMIN)
 router.post('/teams', authenticateToken, requireUserOrAdmin, validateCupTeam, async (req: Request, res: Response) => {
   try {
-    const { teamName, captainName, captainEmail, memberCount, category, cupEdition, acceptedRules } = req.body;
+    const { teamName, captainName, captainEmail, cupEdition, acceptedRules, members } = req.body;
+    const memberNames = members.map((member: string) => member.trim()).filter(Boolean);
 
     const team = await prisma.cupTeam.create({
       data: {
         teamName: teamName.trim(),
         captainName: captainName.trim(),
         captainEmail: captainEmail.trim().toLowerCase(),
-        memberCount: Number(memberCount),
-        category: category.trim(),
+        captainUserId: req.user!.id,
+        memberCount: memberNames.length,
+        category: 'VEGYES',
         cupEdition: cupEdition.trim(),
         acceptedRules: Boolean(acceptedRules),
         status: 'SUBMITTED',
+        members: {
+          create: memberNames.map((name: string) => ({ name })),
+        },
       },
+      include: { members: true },
     });
 
     await createAuditLog({
@@ -60,6 +67,44 @@ router.post('/teams', authenticateToken, requireUserOrAdmin, validateCupTeam, as
   } catch (error) {
     console.error('Csapat nevezési hiba:', error);
     return res.status(500).json({ error: 'Hiba történt a csapat nevezése során' });
+  }
+});
+
+// PATCH /api/cup/teams/:id/members - csapatnévsor módosítása a kapitánynak
+router.patch('/teams/:id/members', authenticateToken, requireUserOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const names = Array.isArray(req.body.members)
+      ? req.body.members
+          .filter((member: unknown): member is string => typeof member === 'string')
+          .map((member: string) => member.trim())
+          .filter(Boolean)
+      : [];
+    if (isNaN(id) || names.length === 0) {
+      return res.status(400).json({ error: 'Érvényes csapat és legalább egy név szükséges' });
+    }
+
+    const team = await prisma.cupTeam.findUnique({ where: { id } });
+    if (!team) return res.status(404).json({ error: 'A csapat nem található' });
+    if (req.user!.role !== 'ADMIN' && team.captainUserId !== req.user!.id) {
+      return res.status(403).json({ error: 'A csapatnévsort csak a csapatkapitány módosíthatja' });
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.cupTeamMember.deleteMany({ where: { teamId: id } });
+      return tx.cupTeam.update({
+        where: { id },
+        data: {
+          memberCount: names.length,
+          members: { create: names.map((name: string) => ({ name })) },
+        },
+        include: { members: true },
+      });
+    });
+    return res.status(200).json(updated);
+  } catch (error) {
+    console.error('Csapatnévsor módosítási hiba:', error);
+    return res.status(500).json({ error: 'Hiba történt a csapatnévsor módosítása során' });
   }
 });
 
