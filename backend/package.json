@@ -2,6 +2,11 @@
   "name": "ropiweb-backend",
   "version": "1.0.0",
   "description": "BME VIK Röplabda Kör REST API",
+  "packageManager": "npm@12.2.1",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0",
+    "npm": ">=12.2.1 <13"
+  },
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -278,8 +278,8 @@ export const INITIAL_CUP_TEAMS: CupTeamRegistration[] = [
 
 export const INITIAL_CUP_RESULTS: CupEditionResults[] = [
   {
-    edition: 'III. VRK (2025)',
-    date: '2025. november 18.',
+    edition: 'Bajnokság I.',
+    date: '2026. január 17.',
     results: [
       { placement: 1, teamName: 'Dirac Delta Spike', category: 'Férfi', notes: 'Döntő: 2-1 (25:23, 22:25, 15:12)' },
       { placement: 2, teamName: 'Villany Ászok', category: 'Férfi', notes: 'Ezüstérmes' },
@@ -291,8 +291,8 @@ export const INITIAL_CUP_RESULTS: CupEditionResults[] = [
     ],
   },
   {
-    edition: 'II. VRK (2024)',
-    date: '2024. november 22.',
+    edition: 'Bajnokság II.',
+    date: '2026. február 21.',
     results: [
       { placement: 1, teamName: 'Röpi Kör All-Stars', category: 'Vegyes', notes: 'Bajnok' },
       { placement: 2, teamName: 'Dirac Delta Spike', category: 'Vegyes', notes: 'Ezüstérmes' },
@@ -302,8 +302,8 @@ export const INITIAL_CUP_RESULTS: CupEditionResults[] = [
     ],
   },
   {
-    edition: 'I. VRK (2023)',
-    date: '2023. december 5.',
+    edition: 'VRK - döntő',
+    date: '2026. március 21.',
     results: [
       { placement: 1, teamName: 'BME VIK Röpi Kör', category: 'Vegyes', notes: 'Alapító kupa győztese' },
       { placement: 2, teamName: 'Villany Ászok', category: 'Vegyes', notes: 'Ezüstérmes' },
@@ -506,7 +506,10 @@ export const api = {
             message: 'Sikeres bejelentkezés (Demo mód)',
           };
         }
-        if (credentials.email === 'admin@ropikor.hu' || credentials.email === 'admin') {
+        if (
+          (credentials.email === 'admin@ropikor.hu' || credentials.email === 'admin') &&
+          credentials.password === 'admin123'
+        ) {
           const adminUser: User = {
             id: 'admin-1',
             name: 'Kovács Péter',
@@ -527,7 +530,6 @@ export const api = {
       name: string;
       email: string;
       password: string;
-      neptun?: string;
     }): Promise<AuthResponse> => {
       try {
         const res = await apiClient<AuthResponse>('/api/auth/register', {
@@ -547,7 +549,6 @@ export const api = {
           id: `u-${Date.now()}`,
           name: data.name,
           email: data.email,
-          neptun: data.neptun?.toUpperCase(),
           role: 'USER',
           isActiveMember: false,
           position: 'Új tag',
@@ -744,11 +745,11 @@ export const api = {
 
     registerTeam: async (data: CupTeamRegistration): Promise<CupTeamRegistration> => {
       try {
-        return await apiClient<CupTeamRegistration>('/api/cup/register', {
+        const response = await apiClient<{ team: CupTeamRegistration }>('/api/cup/teams', {
           method: 'POST',
           body: JSON.stringify(data),
-          requiresAuth: false,
         });
+        return response.team;
       } catch {
         const teams = getStored<CupTeamRegistration[]>(STORAGE_KEYS.CUP_TEAMS, INITIAL_CUP_TEAMS);
         const newTeam: CupTeamRegistration = {
@@ -761,6 +762,13 @@ export const api = {
         setStored(STORAGE_KEYS.CUP_TEAMS, updated);
         return newTeam;
       }
+    },
+
+    updateMembers: async (id: string, members: string[]): Promise<CupTeamRegistration> => {
+      return apiClient<CupTeamRegistration>(`/api/cup/teams/${id}/members`, {
+        method: 'PATCH',
+        body: JSON.stringify({ members }),
+      });
     },
 
     getResults: async (): Promise<CupEditionResults[]> => {
@@ -832,7 +840,7 @@ export const api = {
   users: {
     getAll: async (): Promise<User[]> => {
       try {
-        return await apiClient<User[]>('/api/users');
+        return await apiClient<User[]>('/api/admin/users');
       } catch {
         return getStored<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
       }
@@ -843,10 +851,11 @@ export const api = {
       updates: Partial<Pick<User, 'role' | 'isActiveMember' | 'position'>>
     ): Promise<User> => {
       try {
-        return await apiClient<User>(`/api/users/${id}`, {
+        const response = await apiClient<{ user: User }>(`/api/admin/users/${id}`, {
           method: 'PATCH',
           body: JSON.stringify(updates),
         });
+        return response.user;
       } catch {
         const users = getStored<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
         const updated = users.map((u) => (u.id === id ? { ...u, ...updates } : u));
@@ -861,7 +870,7 @@ export const api = {
   auditLogs: {
     getAll: async (): Promise<AuditLog[]> => {
       try {
-        return await apiClient<AuditLog[]>('/api/audit-logs');
+        return await apiClient<AuditLog[]>('/api/admin/audit-log');
       } catch {
         return getStored<AuditLog[]>(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
       }

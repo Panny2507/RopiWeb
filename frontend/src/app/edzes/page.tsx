@@ -13,7 +13,7 @@ import {
   Loader2 
 } from 'lucide-react';
 
-type LocationFilter = 'Összes' | 'BME' | 'Óbudai' | 'Strand';
+type LocationFilter = 'Összes' | 'BME' | 'Bercsényi' | 'Kármán' | 'Óbudai' | 'Strand';
 
 export default function TrainingsPage() {
   const [trainings, setTrainings] = useState<Training[]>([]);
@@ -36,7 +36,7 @@ export default function TrainingsPage() {
     fetchTrainings();
   }, []);
 
-  const filterTabs: LocationFilter[] = ['Összes', 'BME', 'Óbudai', 'Strand'];
+  const filterTabs: LocationFilter[] = ['Összes', 'BME', 'Bercsényi', 'Kármán', 'Óbudai', 'Strand'];
 
   const filteredTrainings = trainings.filter((training) => {
     // Filter tab condition
@@ -47,6 +47,10 @@ export default function TrainingsPage() {
       matchesTab = training.location.toLowerCase().includes('óbudai') || training.location.toLowerCase().includes('obudai');
     } else if (selectedFilter === 'Strand') {
       matchesTab = training.location.toLowerCase().includes('strand') || training.title.toLowerCase().includes('strand');
+    } else if (selectedFilter === 'Bercsényi') {
+      matchesTab = training.location.toLowerCase().includes('bercsényi');
+    } else if (selectedFilter === 'Kármán') {
+      matchesTab = training.location.toLowerCase().includes('kármán');
     }
 
     // Search query condition

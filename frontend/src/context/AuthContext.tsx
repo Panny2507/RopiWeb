@@ -15,7 +15,6 @@ interface AuthContextType {
     name: string;
     email: string;
     password: string;
-    neptun?: string;
   }) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -67,7 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name: string;
     email: string;
     password: string;
-    neptun?: string;
   }) => {
     setIsLoading(true);
     try {

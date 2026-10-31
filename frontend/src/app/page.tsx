@@ -46,10 +46,39 @@ export default function HomePage() {
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
+          <div className="absolute right-10 bottom-0 hidden lg:block text-vik-gold-400 opacity-90" aria-hidden="true">
+            <svg
+              viewBox="0 0 180 220"
+              className="w-44 h-56"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="112" cy="28" r="15" fill="currentColor" />
+              <path
+                d="M108 45C94 55 89 72 92 91L98 126L83 174M100 124L126 165L147 194M95 70L66 42L47 10M98 71L126 39L148 16"
+                stroke="currentColor"
+                strokeWidth="13"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M147 16L161 3"
+                stroke="currentColor"
+                strokeWidth="9"
+                strokeLinecap="round"
+              />
+              <path
+                d="M78 176L58 204M147 194L168 213"
+                stroke="currentColor"
+                strokeWidth="11"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-vik-blue-800/80 border border-blue-400/30 text-vik-gold-300 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
               <Sparkles className="w-4 h-4 text-vik-gold-400" />
-              <span>BME VIK hivatalos kari sportköre 2026</span>
+              <span>BME VIK Röplabda Kör</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
@@ -87,38 +116,40 @@ export default function HomePage() {
       </section>
 
       {/* Quick Stats Section */}
-      <section className="bg-white py-8 border-b border-slate-200 shadow-sm relative -mt-4 z-10 max-w-6xl mx-auto rounded-2xl px-6 sm:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-          {/* Stat 1 */}
-          <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-vik-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
-              <Users className="w-7 h-7" />
+      <section className="relative -mt-4 z-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto bg-white py-8 border border-slate-200 shadow-sm rounded-2xl px-6 sm:px-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+            {/* Stat 1 */}
+            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-vik-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
+                <Users className="w-7 h-7" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">120+</div>
+                <div className="text-sm font-medium text-slate-600">Aktív tag és hallgató</div>
+              </div>
             </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">120+</div>
-              <div className="text-sm font-medium text-slate-600">Aktív tag és hallgató</div>
-            </div>
-          </div>
 
-          {/* Stat 2 */}
-          <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-              <Calendar className="w-7 h-7" />
+            {/* Stat 2 */}
+            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
+              <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                <Calendar className="w-7 h-7" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">4 alkalom / hét</div>
+                <div className="text-sm font-medium text-slate-600">Heti edzéslehetőség</div>
+              </div>
             </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">4 alkalom / hét</div>
-              <div className="text-sm font-medium text-slate-600">Heti edzéslehetőség</div>
-            </div>
-          </div>
 
-          {/* Stat 3 */}
-          <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-              <Trophy className="w-7 h-7" />
-            </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">IV. VRK 2026</div>
-              <div className="text-sm font-medium text-slate-600">Sikeres kupa kiadás</div>
+            {/* Stat 3 */}
+            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                <Trophy className="w-7 h-7" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">IV. VRK 2026</div>
+                <div className="text-sm font-medium text-slate-600">Sikeres kupa kiadás</div>
+              </div>
             </div>
           </div>
         </div>
@@ -188,7 +219,7 @@ export default function HomePage() {
               <div className="w-12 h-12 rounded-xl bg-vik-blue-100 text-vik-blue-700 flex items-center justify-center mb-4">
                 <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Hivatalos PEK Tagság</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Közösségünk</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
                 Körünk tagjaként igazolt közösségi és sporttevékenységet folytathatsz, amely a Schönherz Kollégiumi felvételinél is plusz pontot ér.
               </p>

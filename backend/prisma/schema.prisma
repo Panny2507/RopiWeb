@@ -21,6 +21,7 @@ model User {
   trainings      Training[]     @relation("UserTrainings")
   registrations  Registration[]
   auditLogs      AuditLog[]
+  captainOfTeams CupTeam[]       @relation("TeamCaptain")
 }
 
 model Training {
@@ -59,12 +60,23 @@ model CupTeam {
   teamName      String
   captainName   String
   captainEmail  String
-  memberCount   Int
-  category      String   // FÉRFI, NŐI, VEGYES
+  captainUserId Int?
+  captain       User?    @relation("TeamCaptain", fields: [captainUserId], references: [id], onDelete: SetNull)
+  memberCount   Int      @default(0)
+  category      String   @default("VEGYES")
   cupEdition    String   // e.g. 'IV. VRK 2026'
   acceptedRules Boolean
   status        String   @default("SUBMITTED") // SUBMITTED, CONFIRMED, REJECTED
   createdAt     DateTime @default(now())
+  members       CupTeamMember[]
+}
+
+model CupTeamMember {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  team      CupTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
 }
 
 model CupResult {
