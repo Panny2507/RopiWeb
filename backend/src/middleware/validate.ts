@@ -84,7 +84,7 @@ export function validateMessage(req: Request, res: Response, next: NextFunction)
  * Cup Team validation middleware
  */
 export function validateCupTeam(req: Request, res: Response, next: NextFunction) {
-  const { teamName, captainName, captainEmail, cupEdition, acceptedRules, members } = req.body;
+  const { teamName, captainName, captainEmail, cupEdition, acceptedRules, members, category } = req.body;
 
   if (!teamName || typeof teamName !== 'string' || !teamName.trim()) {
     return res.status(400).json({ error: 'A csapatnév megadása kötelező' });
@@ -98,12 +98,23 @@ export function validateCupTeam(req: Request, res: Response, next: NextFunction)
     return res.status(400).json({ error: 'Érvényes csapatkapitányi email cím megadása kötelező' });
   }
 
-  if (!Array.isArray(members) || members.some((member) => typeof member !== 'string' || !member.trim())) {
-    return res.status(400).json({ error: 'Legalább egy csapattag nevét add meg' });
+  if (!Array.isArray(members) || members.length === 0) {
+    return res.status(400).json({ error: 'Legalább egy csapattag megadása kötelező' });
+  }
+
+  if (category !== 'Casual' && category !== 'Pro') {
+    return res.status(400).json({ error: 'A kategóriának Casual vagy Pro értékűnek kell lennie' });
+  }
+
+  for (const m of members) {
+    const name = typeof m === 'string' ? m.trim() : (m && typeof m.name === 'string' ? m.name.trim() : '');
+    if (!name) {
+      return res.status(400).json({ error: 'Minden csapattagnak érvényes nevet kell megadni' });
+    }
   }
 
   if (!cupEdition || typeof cupEdition !== 'string' || !cupEdition.trim()) {
-    return res.status(400).json({ error: 'A kupa kiírás (pl. IV. VRK 2026) megadása kötelező' });
+    return res.status(400).json({ error: 'A kupa forduló (pl. IV. VRK 2026) megadása kötelező' });
   }
 
   if (!acceptedRules) {

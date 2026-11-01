@@ -34,7 +34,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/vezetoseg" className="hover:text-vik-gold-400 transition-colors">
-                  Tagjaink
+                  Vezetőség
                 </Link>
               </li>
               <li>
@@ -74,8 +74,8 @@ export default function Footer() {
               <li>
                 <span className="text-xs text-slate-400 block pt-1">
                   Központi e-mail: <br />
-                  <a href="mailto:info@ropikor.hu" className="text-blue-300 hover:underline">
-                    info@ropikor.hu
+                  <a href="mailto:ropikorvik@gmail.com" className="text-blue-300 hover:underline">
+                    ropikorvik@gmail.com
                   </a>
                 </span>
               </li>
@@ -93,7 +93,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               {/* Instagram */}
               <a
-                href="https://instagram.com/bme_vik_roplabda"
+                href="https://instagram.com/ropikor_vik"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"

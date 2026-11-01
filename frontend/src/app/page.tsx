@@ -8,14 +8,12 @@ import { api } from '@/lib/api';
 import TrainingCard from '@/components/TrainingCard';
 import { 
   Trophy, 
-  Users, 
   Calendar, 
-  Volleyball,
-  Sparkles, 
-  ShieldCheck, 
-  Award,
+  Volleyball, 
   ChevronRight,
-  Flame
+  Flame,
+  Mail,
+  Instagram
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -56,11 +54,6 @@ export default function HomePage() {
             />
           </div>
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-vik-blue-800/80 border border-blue-400/30 text-vik-gold-300 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
-              <Sparkles className="w-4 h-4 text-vik-gold-400" />
-              <span>BME VIK Röplabda Kör</span>
-            </div>
-
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
               Üdvözlünk a <br className="hidden sm:inline" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-vik-gold-400 via-yellow-200 to-vik-gold-500">
@@ -90,46 +83,6 @@ export default function HomePage() {
                 <span>Röpikupa nevezés</span>
                 <Trophy className="w-5 h-5 text-vik-gold-400" />
               </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Stats Section */}
-      <section className="relative mt-8 z-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto bg-white py-8 border border-slate-200 shadow-sm rounded-2xl px-6 sm:px-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-            {/* Stat 1 */}
-            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-vik-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
-                <Users className="w-7 h-7" />
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">120+</div>
-                <div className="text-sm font-medium text-slate-600">Aktív tag és hallgató</div>
-              </div>
-            </div>
-
-            {/* Stat 2 */}
-            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-                <Calendar className="w-7 h-7" />
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">4 alkalom / hét</div>
-                <div className="text-sm font-medium text-slate-600">Heti edzéslehetőség</div>
-              </div>
-            </div>
-
-            {/* Stat 3 */}
-            <div className="flex items-center gap-4 py-2 md:py-0 md:px-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                <Trophy className="w-7 h-7" />
-              </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">IV. VRK 2026</div>
-                <div className="text-sm font-medium text-slate-600">Sikeres kupa kiadás</div>
-              </div>
             </div>
           </div>
         </div>
@@ -185,44 +138,32 @@ export default function HomePage() {
       {/* Highlights / Features Banner */}
       <section className="py-16 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="text-center max-w-3xl mx-auto mb-10">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
-              Miért érdemes csatlakoznod hozzánk?
+              Csatlakozz hozzánk!
             </h2>
-            <p className="text-slate-600 text-sm sm:text-base">
-              Kezdőtől a profi szintig minden villanykaros és BME hallgató számára nyitva állunk.
+            <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+              Nem csak BME-s és villanykaros hallgatóknak van lehetősége csatlakozni: a részvétel elsősorban BME Villanykarosoknak szól, de nyitva áll bármely BME-s hallgatónak, vagy akár külsős barátoknak is, akik szeretnének velünk játszani.
             </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-vik-blue-100 text-vik-blue-700 flex items-center justify-center mb-4">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Közösségünk</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Körünk tagjaként igazolt közösségi és sporttevékenységet folytathatsz, amely a Schönherz Kollégiumi felvételinél is plusz pontot ér.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4">
-                <Trophy className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Villanykari Röpikupa</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Minden félévben megrendezzük az egyetem egyik legnagyobb amatőr röplabdatornáját több kategóriában, érmekkel, kupákkal és szurkolótáborral.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4">
-                <Award className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Kiváló Sportlétesítmények</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                A BME Sportközpont modern termeiben és a nyári strandröplabda pályákon a legjobb felszerelésekkel és labdákkal játszhatsz.
-              </p>
+            {/* Direct Social / Email contacts underneath */}
+            <div className="inline-flex flex-wrap items-center justify-center gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <a
+                href="https://instagram.com/ropikor_vik"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-pink-50 text-pink-700 hover:bg-pink-100 border border-pink-200 text-sm font-bold transition-colors"
+              >
+                <Instagram className="w-4 h-4 text-pink-600" />
+                <span>@ropikor_vik</span>
+              </a>
+              <a
+                href="mailto:ropikorvik@gmail.com"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-vik-blue-700 hover:bg-blue-100 border border-blue-200 text-sm font-bold transition-colors"
+              >
+                <Mail className="w-4 h-4 text-vik-blue-700" />
+                <span>ropikorvik@gmail.com</span>
+              </a>
             </div>
           </div>
         </div>

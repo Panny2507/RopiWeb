@@ -169,25 +169,14 @@ export default function TrainingDetailPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {/* Header banner */}
           <div className="bg-gradient-to-r from-vik-blue-800 to-vik-blue-900 p-6 sm:p-8 text-white relative">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-vik-gold-500 text-slate-900">
-                {training.type}
-              </span>
-
-              {isRegistered && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  Már regisztráltál erre az edzésre
-                </span>
-              )}
-
-              {isWaitlisted && (
+            {isWaitlisted && (
+              <div className="flex flex-wrap items-center justify-end gap-3 mb-3">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-200 border border-amber-400/30">
                   <Clock3 className="w-4 h-4 text-amber-400" />
                   Várólistán vagy ({waitlistIndex}. hely)
                 </span>
-              )}
-            </div>
+              </div>
+            )}
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
               {training.title}

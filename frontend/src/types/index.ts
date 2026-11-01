@@ -32,11 +32,14 @@ export interface Training {
   waitlist: Participant[];
 }
 
-export type CupCategory = 'Férfi' | 'Női' | 'Vegyes';
+export type CupCategory = 'Casual' | 'Pro' | 'Vegyes' | 'Férfi' | 'Női';
 
 export interface CupTeamMember {
   id?: string;
   name: string;
+  isVik?: boolean;
+  isBme?: boolean;
+  isFemale?: boolean;
 }
 
 export interface CupTeamRegistration {
@@ -47,11 +50,19 @@ export interface CupTeamRegistration {
   captainUserId?: number;
   members?: CupTeamMember[];
   playerCount?: number;
+  type?: string;
   category: CupCategory;
   edition: string;
   rulesAccepted: boolean;
   status?: string;
   createdAt?: string;
+}
+
+export interface CupScheduleInfo {
+  hasSchedule: boolean;
+  fileName?: string | null;
+  mimeType?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface CupResultItem {

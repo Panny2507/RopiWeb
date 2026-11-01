@@ -4,8 +4,10 @@ import {
   Training,
   CupTeamRegistration,
   CupEditionResults,
+  CupScheduleInfo,
   ContactMessage,
   AuditLog,
+  CupTeamMember,
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -127,92 +129,102 @@ function normalizeTraining(training: TrainingApiResponse): Training {
 }
 
 // Initial Mock data fallbacks for development / seamless offline testing
+// Default capacity is 20 across all default trainings as requested
 export const INITIAL_TRAININGS: Training[] = [
   {
     id: '1',
-    title: 'Hétfői Technikai Gyakorlás',
-    location: 'BME Sportközpont - BME Terem',
-    date: '2026-10-19T18:00:00',
+    title: 'BME Sportközpont Edzés - Hétfő',
+    location: 'BME Sportközpont',
+    date: '2026-11-02T18:00:00',
     type: 'Gyakorlás',
-    maxParticipants: 14,
-    description: 'Érintés, alkarérintés, feladás és nyitásfogadás fókuszú edzés haladóknak és kezdőknek.',
+    maxParticipants: 20,
+    description: 'Technikai és taktikai felkészülés, labdaérintések és közös játék.',
     participants: [
-      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-15T09:30:00' },
-      { id: 'u2', name: 'Nagy Anna', registeredAt: '2026-10-15T10:15:00' },
-      { id: 'u3', name: 'Kiss Bence', registeredAt: '2026-10-15T11:00:00' },
-      { id: 'u4', name: 'Szabó Eszter', registeredAt: '2026-10-15T11:20:00' },
-      { id: 'u5', name: 'Horváth Márk', registeredAt: '2026-10-15T12:00:00' },
-      { id: 'u6', name: 'Tóth Zsófia', registeredAt: '2026-10-15T13:45:00' },
-      { id: 'u7', name: 'Varga Dániel', registeredAt: '2026-10-15T14:10:00' },
-      { id: 'u8', name: 'Molnár Gábor', registeredAt: '2026-10-15T15:00:00' },
-      { id: 'u9', name: 'Farkas Lili', registeredAt: '2026-10-15T16:30:00' },
-      { id: 'u10', name: 'Papp Balázs', registeredAt: '2026-10-15T17:00:00' },
-      { id: 'u11', name: 'Takács Dóra', registeredAt: '2026-10-15T18:00:00' },
-      { id: 'u12', name: 'Juhász Ádám', registeredAt: '2026-10-15T18:30:00' },
+      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-30T09:30:00' },
+      { id: 'u2', name: 'Nagy Anna', registeredAt: '2026-10-30T10:15:00' },
+      { id: 'u3', name: 'Kiss Bence', registeredAt: '2026-10-30T11:00:00' },
+      { id: 'u4', name: 'Szabó Eszter', registeredAt: '2026-10-30T11:20:00' },
+      { id: 'u5', name: 'Horváth Márk', registeredAt: '2026-10-30T12:00:00' },
+      { id: 'u6', name: 'Tóth Zsófia', registeredAt: '2026-10-30T13:45:00' },
     ],
     waitlist: [],
   },
   {
     id: '2',
-    title: 'Szerdai Pörgős Meccsezés',
-    location: 'Óbudai Egyetem Sportcsarnok',
-    date: '2026-10-21T19:30:00',
+    title: 'Óbudai Edzés - Kedd',
+    location: 'Óbudai Egyetem - Doberdó úti Kollégium tornaterem',
+    date: '2026-11-03T17:00:00',
     type: 'Meccs',
-    maxParticipants: 12,
-    description: '6v6 mérkőzések forgással, pontozással. Kérjük hozz fekete és fehér felsőt is!',
+    maxParticipants: 20,
+    description: 'Pörgős mérkőzések a Doberdó úti Kollégium tornatermében.',
     participants: [
-      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-14T08:00:00' },
-      { id: 'u2', name: 'Nagy Anna', registeredAt: '2026-10-14T08:05:00' },
-      { id: 'u3', name: 'Kiss Bence', registeredAt: '2026-10-14T08:10:00' },
-      { id: 'u4', name: 'Szabó Eszter', registeredAt: '2026-10-14T08:12:00' },
-      { id: 'u5', name: 'Németh Tamás', registeredAt: '2026-10-14T08:15:00' },
-      { id: 'u6', name: 'Simon Vivien', registeredAt: '2026-10-14T08:20:00' },
-      { id: 'u7', name: 'Mészáros Bálint', registeredAt: '2026-10-14T08:25:00' },
-      { id: 'u8', name: 'Lukács Kata', registeredAt: '2026-10-14T08:30:00' },
-      { id: 'u9', name: 'Bíró László', registeredAt: '2026-10-14T08:35:00' },
-      { id: 'u10', name: 'Oláh Boglárka', registeredAt: '2026-10-14T08:40:00' },
-      { id: 'u11', name: 'Gál Marcell', registeredAt: '2026-10-14T08:45:00' },
-      { id: 'u12', name: 'Balogh Zoltán', registeredAt: '2026-10-14T08:50:00' },
+      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-29T08:00:00' },
+      { id: 'u2', name: 'Nagy Anna', registeredAt: '2026-10-29T08:05:00' },
+      { id: 'u3', name: 'Kiss Bence', registeredAt: '2026-10-29T08:10:00' },
+      { id: 'u4', name: 'Szabó Eszter', registeredAt: '2026-10-29T08:12:00' },
     ],
-    waitlist: [
-      { id: 'u13', name: 'Szilágyi Nóra', registeredAt: '2026-10-14T09:00:00' },
-      { id: 'u14', name: 'Vincze Tamás', registeredAt: '2026-10-14T09:15:00' },
-    ],
+    waitlist: [],
   },
   {
     id: '3',
-    title: 'Pénteki Strandröplabda & Nyárzáró',
-    location: 'BME Strandröplabda pálya (Központi Kampusz)',
-    date: '2026-10-23T16:00:00',
+    title: 'Bercsényi Edzés - Szerda',
+    location: 'Bercsényi Kollégium tornaterem',
+    date: '2026-11-04T19:00:00',
     type: 'Szabad edzés',
-    maxParticipants: 16,
-    description: 'Kötetlen játék homokon, zene és jó hangulat. Időjárásfüggő!',
+    maxParticipants: 20,
+    description: 'Kötetlen játék és jó hangulat a Bercsényi tornatermében.',
     participants: [
-      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-14T10:00:00' },
-      { id: 'u2', name: 'Kiss Bence', registeredAt: '2026-10-14T10:10:00' },
-      { id: 'u4', name: 'Szabó Eszter', registeredAt: '2026-10-14T10:20:00' },
-      { id: 'u7', name: 'Fekete Krisztián', registeredAt: '2026-10-14T11:00:00' },
-      { id: 'u8', name: 'Kelemen Ágnes', registeredAt: '2026-10-14T11:30:00' },
+      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-28T10:00:00' },
+      { id: 'u2', name: 'Kiss Bence', registeredAt: '2026-10-28T10:10:00' },
+      { id: 'u4', name: 'Szabó Eszter', registeredAt: '2026-10-28T10:20:00' },
     ],
     waitlist: [],
   },
   {
     id: '4',
-    title: 'Szombati Bajnoki Felkészülés',
-    location: 'Óbudai Egyetem Sportcsarnok',
-    date: '2026-10-24T10:00:00',
+    title: 'Kármán Edzés - Csütörtök',
+    location: 'Kármán Tódor Kollégium tornaterem',
+    date: '2026-11-05T18:30:00',
     type: 'Gyakorlás',
-    maxParticipants: 14,
-    description: 'Taktikai elemek, sánc-védekezés összedolgozása a Röpikupa előtt.',
+    maxParticipants: 20,
+    description: 'Edzés és meccsek a Kármán Tódor Kollégiumban.',
     participants: [
-      { id: 'u2', name: 'Nagy Anna', registeredAt: '2026-10-15T10:00:00' },
-      { id: 'u5', name: 'Kerekes Attila', registeredAt: '2026-10-15T11:00:00' },
-      { id: 'u6', name: 'Somogyi Luca', registeredAt: '2026-10-15T12:00:00' },
+      { id: 'u2', name: 'Nagy Anna', registeredAt: '2026-10-28T10:00:00' },
+      { id: 'u5', name: 'Horváth Márk', registeredAt: '2026-10-28T11:00:00' },
+    ],
+    waitlist: [],
+  },
+  {
+    id: '5',
+    title: 'BME Sporttelep Strandröpi - Szombat',
+    location: 'BME Sporttelep - Strandröplabda pálya',
+    date: '2026-11-07T10:00:00',
+    type: 'Szabad edzés',
+    maxParticipants: 20,
+    description: 'Szabadtéri játék homokon a Bogdánfy úti BME Sporttelepen.',
+    participants: [
+      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-28T10:00:00' },
+      { id: 'u3', name: 'Kiss Bence', registeredAt: '2026-10-28T10:30:00' },
+    ],
+    waitlist: [],
+  },
+  {
+    id: '6',
+    title: 'BME Sportközpont Vasárnapi Játék',
+    location: 'BME Sportközpont',
+    date: '2026-11-08T15:00:00',
+    type: 'Meccs',
+    maxParticipants: 20,
+    description: 'Hétvégi mérkőzések a Bertalan Lajos utcai csarnokban.',
+    participants: [
+      { id: 'u1', name: 'Kovács Péter', registeredAt: '2026-10-29T10:00:00' },
+      { id: 'u2', name: 'Nagy Anna', registeredAt: '2026-10-29T11:00:00' },
     ],
     waitlist: [],
   },
 ];
 
+// Initial cup teams - Casual / Pro categories, Vegyes type, with isVik, isBme, isFemale checkboxes
 export const INITIAL_CUP_TEAMS: CupTeamRegistration[] = [
   {
     id: 't1',
@@ -220,105 +232,111 @@ export const INITIAL_CUP_TEAMS: CupTeamRegistration[] = [
     captainName: 'Kovács Péter',
     captainEmail: 'kovacs.peter@ropikor.hu',
     playerCount: 6,
-    category: 'Vegyes',
+    type: 'Vegyes',
+    category: 'Pro',
     edition: 'IV. VRK 2026',
     rulesAccepted: true,
     status: 'Jóváhagyva',
     createdAt: '2026-10-01T10:00:00',
+    members: [
+      { id: 'm1', name: 'Kovács Péter', isVik: true, isBme: true, isFemale: false },
+      { id: 'm2', name: 'Nagy Anna', isVik: true, isBme: true, isFemale: true },
+      { id: 'm3', name: 'Kiss Bence', isVik: true, isBme: true, isFemale: false },
+      { id: 'm4', name: 'Szabó Eszter', isVik: false, isBme: true, isFemale: true },
+      { id: 'm5', name: 'Horváth Márk', isVik: true, isBme: true, isFemale: false },
+      { id: 'm6', name: 'Tóth Zsófia', isVik: false, isBme: false, isFemale: true },
+    ],
   },
   {
     id: 't2',
-    teamName: 'Dirac Delta Spike',
-    captainName: 'Nagy Anna',
-    captainEmail: 'nagy.anna@ropikor.hu',
-    playerCount: 7,
-    category: 'Férfi',
-    edition: 'IV. VRK 2026',
-    rulesAccepted: true,
-    status: 'Jóváhagyva',
-    createdAt: '2026-10-02T14:30:00',
-  },
-  {
-    id: 't3',
     teamName: 'Schönherz Sáncolók',
-    captainName: 'Kiss Bence',
-    captainEmail: 'kiss.bence@ropikor.hu',
+    captainName: 'Balogh Tamás',
+    captainEmail: 'tamas@ropikor.hu',
     playerCount: 6,
-    category: 'Vegyes',
+    type: 'Vegyes',
+    category: 'Casual',
     edition: 'IV. VRK 2026',
     rulesAccepted: true,
     status: 'Jóváhagyva',
     createdAt: '2026-10-05T09:15:00',
+    members: [
+      { id: 'm7', name: 'Balogh Tamás', isVik: true, isBme: true, isFemale: false },
+      { id: 'm8', name: 'Kerekes Luca', isVik: true, isBme: true, isFemale: true },
+      { id: 'm9', name: 'Varga Dániel', isVik: true, isBme: true, isFemale: false },
+      { id: 'm10', name: 'Molnár Gábor', isVik: true, isBme: true, isFemale: false },
+      { id: 'm11', name: 'Farkas Lili', isVik: false, isBme: true, isFemale: true },
+      { id: 'm12', name: 'Papp Balázs', isVik: false, isBme: false, isFemale: false },
+    ],
   },
   {
-    id: 't4',
-    teamName: 'Infós Ászadók',
-    captainName: 'Varga Dániel',
-    captainEmail: 'varga.daniel@edu.bme.hu',
+    id: 't3',
+    teamName: 'Mixed Signals',
+    captainName: 'Takács Dóra',
+    captainEmail: 'dora@ropikor.hu',
     playerCount: 6,
-    category: 'Férfi',
-    edition: 'IV. VRK 2026',
+    type: 'Vegyes',
+    category: 'Casual',
+    edition: 'V. VRK 2027',
     rulesAccepted: true,
     status: 'Elküldve',
-    createdAt: '2026-10-10T16:40:00',
-  },
-  {
-    id: 't5',
-    teamName: 'Arany Kezek',
-    captainName: 'Szabó Eszter',
-    captainEmail: 'szabo.eszter@ropikor.hu',
-    playerCount: 6,
-    category: 'Női',
-    edition: 'IV. VRK 2026',
-    rulesAccepted: true,
-    status: 'Jóváhagyva',
     createdAt: '2026-10-12T11:20:00',
+    members: [
+      { id: 'm13', name: 'Takács Dóra', isVik: true, isBme: true, isFemale: true },
+      { id: 'm14', name: 'Bíró László', isVik: true, isBme: true, isFemale: false },
+      { id: 'm15', name: 'Oláh Boglárka', isVik: true, isBme: true, isFemale: true },
+      { id: 'm16', name: 'Gál Marcell', isVik: false, isBme: true, isFemale: false },
+      { id: 'm17', name: 'Simon Vivien', isVik: false, isBme: false, isFemale: true },
+      { id: 'm18', name: 'Németh Tamás', isVik: true, isBme: true, isFemale: false },
+    ],
   },
 ];
 
+// Initial cup results - ONLY Vegyes, no men-only entries
 export const INITIAL_CUP_RESULTS: CupEditionResults[] = [
   {
-    edition: 'Bajnokság I.',
-    date: '2026. január 17.',
+    edition: 'I. VRK 2023',
+    date: '2023. március 25.',
     results: [
-      { placement: 1, teamName: 'Dirac Delta Spike', category: 'Férfi', notes: 'Döntő: 2-1 (25:23, 22:25, 15:12)' },
-      { placement: 2, teamName: 'Villany Ászok', category: 'Férfi', notes: 'Ezüstérmes' },
-      { placement: 3, teamName: 'Schönherz Blokk', category: 'Férfi', notes: 'Bronzmérkőzés győztes' },
-      { placement: 1, teamName: 'VolleyQueens', category: 'Női', notes: 'Veretlen bajnok' },
-      { placement: 2, teamName: 'VIK Girls', category: 'Női', notes: 'Ezüstérmes' },
-      { placement: 1, teamName: 'BME Vegyesgépészek', category: 'Vegyes', notes: 'Aranyérmes' },
-      { placement: 2, teamName: 'Kollégiumi Reménységek', category: 'Vegyes', notes: 'Ezüstérmes' },
+      { placement: 1, teamName: 'BME VIK Röpi Kör', category: 'Vegyes', notes: 'Aranyérem, veretlen menetelés' },
+      { placement: 2, teamName: 'Dirac Delta Spike', category: 'Vegyes', notes: 'Ezüstérem' },
+      { placement: 3, teamName: 'Villámcsapás', category: 'Vegyes', notes: 'Bronzérem' },
     ],
   },
   {
-    edition: 'Bajnokság II.',
-    date: '2026. február 21.',
+    edition: 'II. VRK 2024',
+    date: '2024. április 20.',
     results: [
-      { placement: 1, teamName: 'Röpi Kör All-Stars', category: 'Vegyes', notes: 'Bajnok' },
-      { placement: 2, teamName: 'Dirac Delta Spike', category: 'Vegyes', notes: 'Ezüstérmes' },
-      { placement: 3, teamName: 'Schönherz Kollégium', category: 'Vegyes', notes: 'Bronzérmes' },
-      { placement: 1, teamName: 'Villany Ászok', category: 'Férfi', notes: 'Aranyérmes' },
-      { placement: 2, teamName: 'Infós Sáncolók', category: 'Férfi', notes: 'Ezüstérmes' },
-    ],
-  },
-  {
-    edition: 'VRK - döntő',
-    date: '2026. március 21.',
-    results: [
-      { placement: 1, teamName: 'BME VIK Röpi Kör', category: 'Vegyes', notes: 'Alapító kupa győztese' },
+      { placement: 1, teamName: 'Dirac Delta Spike', category: 'Vegyes', notes: 'Bajnok' },
       { placement: 2, teamName: 'Villany Ászok', category: 'Vegyes', notes: 'Ezüstérmes' },
-      { placement: 3, teamName: 'Infó Blokk', category: 'Vegyes', notes: 'Bronzérmes' },
+      { placement: 3, teamName: 'LabView Legends', category: 'Vegyes', notes: 'Harmadik helyezett' },
+    ],
+  },
+  {
+    edition: 'III. VRK 2025',
+    date: '2025. április 19.',
+    results: [
+      { placement: 1, teamName: 'Mixed Signals', category: 'Vegyes', notes: 'Vegyes torna aranyérmese' },
+      { placement: 2, teamName: 'Schönherz Sáncolók', category: 'Vegyes', notes: 'Vegyes torna ezüstérmese' },
+      { placement: 3, teamName: 'Villámcsapás', category: 'Vegyes', notes: 'Bronzérmes' },
     ],
   },
 ];
+
+export const INITIAL_CUP_SCHEDULE: CupScheduleInfo & { fileData?: string } = {
+  hasSchedule: true,
+  fileName: 'IV_VRK_2026_lebonyolitas.xlsx',
+  mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  updatedAt: '2026-11-01T12:00:00Z',
+  fileData: 'SWTFcG9udCxQw6FseWEsQSBjc2FwYXQsQiBjc2FwYXQsS2F0ZWfDs3JpYSxKw6F0w6lrdmV6ZXTDtWsKMDk6MDAsMS4gcMOhbHlhLFZpbGxhbnkgw4Fzem9rLFNjaMO2bmhlcnogU8OhbmNvbMOzLFZlZ3llcyxSw7ZwaSBLw7ZyIGLDrcHLazoxMDowMCwxLiBww6FseWEsTWl4ZWQgU2lnbmFscyxJbmbDsyBCbG9rayxWZWd5ZXMsUsO2cGkgS8O2ciBiw61yw7NrCjExOjMwLDEuIHDDoWx5YSxFbMWRZMO2bnTDsSAxLEVsw5Zkw7ZudMWRIDIsVmVneWVzLFLDtnBpIEvDtnIgYsOtcsOzawoxMzowMCwxLiBww6FseWEsRMO2bnTDtSBBLETDtm50xZEgQixWZWd5ZXMsUsO2cGkgS8O2ciBiw61yw7Nr',
+};
 
 export const INITIAL_MESSAGES: ContactMessage[] = [
   {
     id: 'm1',
     name: 'Balogh Márton',
     email: 'marci.balogh@gmail.com',
-    subject: 'Csatlakozási lehetőség teljesen kezdőknek',
-    message: 'Sziasztok! Elsőéves mérnökinformatikus hallgató vagyok, és szeretném megkérdezni, hogy teljesen kezdőként is lehet-e jönni a hétfői edzésekre?',
+    subject: 'Csatlakozási lehetőség',
+    message: 'Sziasztok! Elsőéves hallgató vagyok, és szeretném megkérdezni, hogy teljesen kezdőként is lehet-e jönni a hétfői edzésekre?',
     isRead: false,
     createdAt: '2026-10-14T09:12:00',
   },
@@ -326,19 +344,10 @@ export const INITIAL_MESSAGES: ContactMessage[] = [
     id: 'm2',
     name: 'Kovács Zsolt',
     email: 'zsolt.kovacs@vik.bme.hu',
-    subject: 'Röpikupa nevezési határidő kérdés',
-    message: 'Üdv! A csapatunk még vár egy cserejátékos megerősítésére. Lehetséges 1-2 nappal később leadni a végső névsort a nevezés után?',
+    subject: 'Ötlet új edzésidőpontra',
+    message: 'Szerintem szuper lenne vasárnap esténként is egy szabad játék edzés a Schönherz lakóinak.',
     isRead: true,
     createdAt: '2026-10-13T14:40:00',
-  },
-  {
-    id: 'm3',
-    name: 'Farkas Tamás',
-    email: 'farkas.tamas@partner.bme.hu',
-    subject: 'Terembérlés egyeztetés',
-    message: 'Kedves Vezetőség! A Sportközpont vezetőségétől kereslek benneteket a jövő félévi órarendi beosztások kapcsán.',
-    isRead: true,
-    createdAt: '2026-10-11T16:05:00',
   },
 ];
 
@@ -350,7 +359,7 @@ export const INITIAL_USERS: User[] = [
     neptun: 'PETE01',
     role: 'ADMIN',
     isActiveMember: true,
-    position: 'Elnök',
+    position: 'Körvezető',
     createdAt: '2024-09-01T10:00:00',
   },
   {
@@ -360,7 +369,7 @@ export const INITIAL_USERS: User[] = [
     neptun: 'ANNA02',
     role: 'ADMIN',
     isActiveMember: true,
-    position: 'Alelnök',
+    position: 'Körvezető helyettes',
     createdAt: '2024-09-01T10:00:00',
   },
   {
@@ -378,40 +387,10 @@ export const INITIAL_USERS: User[] = [
     name: 'Szabó Eszter',
     email: 'szabo.eszter@ropikor.hu',
     neptun: 'ESZT04',
-    role: 'ADMIN',
-    isActiveMember: true,
-    position: 'PR felelős',
-    createdAt: '2024-09-01T10:00:00',
-  },
-  {
-    id: 'u5',
-    name: 'Horváth Márk',
-    email: 'mark.horvath@edu.bme.hu',
-    neptun: 'HMRK99',
-    role: 'MEMBER',
-    isActiveMember: true,
-    position: 'Körtag',
-    createdAt: '2025-02-10T12:00:00',
-  },
-  {
-    id: 'u6',
-    name: 'Sajbán Anna',
-    email: 'sajban.anna@edu.bme.hu',
-    neptun: 'QTLYQ6',
-    role: 'ADMIN',
-    isActiveMember: true,
-    position: 'Vezető fejlesztő',
-    createdAt: '2024-09-01T10:00:00',
-  },
-  {
-    id: 'u7',
-    name: 'Teszt Vendég',
-    email: 'vendeg@bme.hu',
-    neptun: 'VEND01',
     role: 'USER',
-    isActiveMember: false,
-    position: 'Érdeklődő',
-    createdAt: '2026-09-15T15:00:00',
+    isActiveMember: true,
+    position: 'HR felelős',
+    createdAt: '2024-09-01T10:00:00',
   },
 ];
 
@@ -420,43 +399,22 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     id: 'log-1',
     action: 'Edzés kiírása',
     performedBy: 'Kovács Péter (Admin)',
-    timestamp: '2026-10-14 17:30:12',
-    details: 'Hétfői Technikai Gyakorlás meghirdetve (14 fő, BME Sportközpont)',
+    timestamp: '2026-10-30 17:30:12',
+    details: 'BME Sportközpont Edzés - Hétfő meghirdetve (20 fő)',
   },
   {
     id: 'log-2',
-    action: 'Jelentkezés elfogadva',
-    performedBy: 'Varga Dániel',
-    timestamp: '2026-10-14 17:45:00',
-    details: 'Sikeres foglalás: Hétfői Technikai Gyakorlás (helyszín: BME)',
-  },
-  {
-    id: 'log-3',
-    action: 'Várólistára kerülés',
-    performedBy: 'Szilágyi Nóra',
-    timestamp: '2026-10-14 18:00:15',
-    details: 'Szerdai Pörgős Meccsezés betelt, várólista 1. hely',
-  },
-  {
-    id: 'log-4',
-    action: 'Röpikupa nevezés',
-    performedBy: 'Szabó Eszter',
-    timestamp: '2026-10-14 18:02:00',
-    details: 'Csapat: Arany Kezek (Női kategória, 6 fő)',
-  },
-  {
-    id: 'log-5',
-    action: 'Illetéktelen admin hívás elutasítva',
-    performedBy: 'vendeg@bme.hu (IP: 152.66.x.x)',
-    timestamp: '2026-10-14 18:05:40',
-    details: 'HTTP 403 Forbidden: /api/trainings/delete jogtalan próbálkozás',
+    action: 'Kupa lebonyolítás táblázat feltöltve',
+    performedBy: 'Kovács Péter (Admin)',
+    timestamp: '2026-11-01 12:00:00',
+    details: 'IV_VRK_2026_lebonyolitas_tablazat.xlsx',
   },
 ];
 
-// High-level API methods with automatic fallback to mock store in localStorage for offline testing
 const STORAGE_KEYS = {
   TRAININGS: 'ropiweb_data_trainings',
   CUP_TEAMS: 'ropiweb_data_cup_teams',
+  CUP_SCHEDULE: 'ropiweb_data_cup_schedule',
   MESSAGES: 'ropiweb_data_messages',
   USERS: 'ropiweb_data_users',
   AUDIT_LOGS: 'ropiweb_data_audit_logs',
@@ -477,7 +435,7 @@ function setStored<T>(key: string, value: T): void {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch {
-      // ignore quota errors
+      // ignore
     }
   }
 }
@@ -516,7 +474,7 @@ export const api = {
             email: 'kovacs.peter@ropikor.hu',
             role: 'ADMIN',
             isActiveMember: true,
-            position: 'Elnök',
+            position: 'Körvezető',
           };
           const mockToken = `mock-token-admin-${Date.now()}`;
           setToken(mockToken);
@@ -540,7 +498,6 @@ export const api = {
         if (res.token) setToken(res.token);
         return res;
       } catch (err) {
-        // Fallback demo registration
         const users = getStored<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
         if (users.some((u) => u.email.toLowerCase() === data.email.toLowerCase())) {
           throw new Error('Ezzel az e-mail címmel már regisztráltak!');
@@ -551,7 +508,7 @@ export const api = {
           email: data.email,
           role: 'USER',
           isActiveMember: false,
-          position: 'Új tag',
+          position: 'Tag',
           createdAt: new Date().toISOString(),
         };
         const updated = [...users, newUser];
@@ -573,7 +530,6 @@ export const api = {
         const res = await apiClient<{ user: User }>('/api/auth/me');
         return res.user;
       } catch {
-        // Fallback if demo token
         const users = getStored<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
         if (token.includes('admin')) {
           return users.find((u) => u.role === 'ADMIN') || users[0];
@@ -662,10 +618,6 @@ export const api = {
         });
       } catch (err: any) {
         if (err.status) throw err;
-        // Fallback local logic according to specification:
-        // EF-1: If space available -> registered
-        // EF-2: If full -> waitlist
-        // EF-4: If already registered -> reject duplicate
         const list = getStored<Training[]>(STORAGE_KEYS.TRAININGS, INITIAL_TRAININGS);
         const training = list.find((t) => t.id === trainingId);
         if (!training) throw new Error('Az edzés nem található');
@@ -706,8 +658,6 @@ export const api = {
           body: JSON.stringify({ userId }),
         });
       } catch {
-        // EF-7: Sikeres jelentkezés lemondása betelt edzésen.
-        // A felhasználó törlődik a főlistáról, a várólista 1. helyén álló tag automatikusan átkerül az elfogadott keretbe.
         const list = getStored<Training[]>(STORAGE_KEYS.TRAININGS, INITIAL_TRAININGS);
         const training = list.find((t) => t.id === trainingId);
         if (!training) throw new Error('Az edzés nem található');
@@ -717,7 +667,6 @@ export const api = {
 
         if (partIndex !== -1) {
           training.participants.splice(partIndex, 1);
-          // If anyone on waitlist, promote first waitlist person
           if (training.waitlist.length > 0) {
             const promoted = training.waitlist.shift();
             if (promoted) {
@@ -747,13 +696,17 @@ export const api = {
       try {
         const response = await apiClient<{ team: CupTeamRegistration }>('/api/cup/teams', {
           method: 'POST',
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            ...data,
+            category: data.category,
+          }),
         });
         return response.team;
       } catch {
         const teams = getStored<CupTeamRegistration[]>(STORAGE_KEYS.CUP_TEAMS, INITIAL_CUP_TEAMS);
         const newTeam: CupTeamRegistration = {
           ...data,
+          category: data.category,
           id: `t-${Date.now()}`,
           status: 'Elküldve',
           createdAt: new Date().toISOString(),
@@ -764,11 +717,30 @@ export const api = {
       }
     },
 
-    updateMembers: async (id: string, members: string[]): Promise<CupTeamRegistration> => {
-      return apiClient<CupTeamRegistration>(`/api/cup/teams/${id}/members`, {
-        method: 'PATCH',
-        body: JSON.stringify({ members }),
-      });
+    updateMembers: async (id: string, members: Array<string | CupTeamMember>): Promise<CupTeamRegistration> => {
+      try {
+        return await apiClient<CupTeamRegistration>(`/api/cup/teams/${id}/members`, {
+          method: 'PATCH',
+          body: JSON.stringify({ members }),
+        });
+      } catch {
+        const teams = getStored<CupTeamRegistration[]>(STORAGE_KEYS.CUP_TEAMS, INITIAL_CUP_TEAMS);
+        const updated = teams.map((t) => {
+          if (t.id === id) {
+            const normalized = members.map((m) => (typeof m === 'string' ? { name: m } : m));
+            return {
+              ...t,
+              members: normalized,
+              playerCount: normalized.length,
+            };
+          }
+          return t;
+        });
+        setStored(STORAGE_KEYS.CUP_TEAMS, updated);
+        const item = updated.find((t) => t.id === id);
+        if (!item) throw new Error('Csapat nem található');
+        return item;
+      }
     },
 
     getResults: async (): Promise<CupEditionResults[]> => {
@@ -776,6 +748,96 @@ export const api = {
         return await apiClient<CupEditionResults[]>('/api/cup/results', { requiresAuth: false });
       } catch {
         return INITIAL_CUP_RESULTS;
+      }
+    },
+
+    getSchedule: async (): Promise<CupScheduleInfo> => {
+      try {
+        return await apiClient<CupScheduleInfo>('/api/cup/schedule', { requiresAuth: false });
+      } catch {
+        const stored = getStored<CupScheduleInfo>(STORAGE_KEYS.CUP_SCHEDULE, INITIAL_CUP_SCHEDULE);
+        return stored;
+      }
+    },
+
+    uploadSchedule: async (data: { fileName: string; fileData: string; mimeType?: string }): Promise<CupScheduleInfo> => {
+      try {
+        const res = await apiClient<{ schedule: CupScheduleInfo }>('/api/cup/schedule', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+        return res.schedule;
+      } catch {
+        const newSchedule: CupScheduleInfo & { fileData: string } = {
+          hasSchedule: true,
+          fileName: data.fileName,
+          mimeType: data.mimeType || 'application/octet-stream',
+          updatedAt: new Date().toISOString(),
+          fileData: data.fileData,
+        };
+        setStored(STORAGE_KEYS.CUP_SCHEDULE, newSchedule);
+        return newSchedule;
+      }
+    },
+
+    deleteSchedule: async (): Promise<void> => {
+      try {
+        await apiClient('/api/cup/schedule', { method: 'DELETE' });
+      } catch {
+        // Fallback
+      }
+      setStored(STORAGE_KEYS.CUP_SCHEDULE, { hasSchedule: false, fileName: null, updatedAt: null });
+    },
+
+    downloadSchedule: async (): Promise<void> => {
+      try {
+        const token = getToken();
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch(`${API_BASE_URL}/api/cup/schedule/download`, { headers });
+        if (response.ok) {
+          const blob = await response.blob();
+          const disposition = response.headers.get('content-disposition');
+          let filename = 'kupa_lebonyolitas.xlsx';
+          if (disposition && disposition.indexOf('filename=') !== -1) {
+            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+            if (matches != null && matches[1]) {
+              filename = decodeURIComponent(matches[1].replace(/['"]/g, ''));
+            }
+          }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          return;
+        }
+      } catch {
+        // Fallback to local stored fileData
+      }
+
+      const stored = getStored<any>(STORAGE_KEYS.CUP_SCHEDULE, INITIAL_CUP_SCHEDULE);
+      if (stored && stored.hasSchedule && stored.fileData) {
+        const byteCharacters = atob(stored.fileData);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: stored.mimeType || 'application/octet-stream' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = stored.fileName || 'kupa_lebonyolitas.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        throw new Error('Jelenleg nem elérhető a kupa lebonyolítása');
       }
     },
   },
@@ -788,9 +850,14 @@ export const api = {
       message: string;
     }): Promise<ContactMessage> => {
       try {
-        return await apiClient<ContactMessage>('/api/contact', {
+        return await apiClient<ContactMessage>('/api/messages', {
           method: 'POST',
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            senderName: data.name,
+            senderEmail: data.email,
+            subject: data.subject,
+            body: data.message,
+          }),
           requiresAuth: false,
         });
       } catch {

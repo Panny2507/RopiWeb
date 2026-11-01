@@ -7,10 +7,11 @@ import {
   Send, 
   CheckCircle2, 
   AlertCircle, 
-  MapPin, 
+  HelpCircle, 
   MessageSquare, 
   Clock, 
   Building2,
+  Instagram,
   Loader2 
 } from 'lucide-react';
 
@@ -73,6 +74,29 @@ export default function ContactPage() {
     }
   };
 
+  const faqItems = [
+    {
+      q: 'Gólyák is csatlakozhatnak a körhöz?',
+      a: 'Igen! Minden félévben szeretettel várjuk a gólyákat is edzéseinkre és közösségi programjainkra.',
+    },
+    {
+      q: 'Kötelező lány a röpikupára?',
+      a: 'Igen, 1 db lány játékos részvétele kötelező a csapatban.',
+    },
+    {
+      q: 'Lehet kategóriába átjátszás 1 kupán belül?',
+      a: 'Nem, egy játékos csak egyetlen kategóriában és csapatban léphet pályára a torna során.',
+    },
+    {
+      q: 'Mikor kapjuk meg a lebonyolítást a röpikupára?',
+      a: 'Legkésőbb 1 nappal az esemény előtt közzétesszük az oldalon és elküldjük a csapatkapitányoknak.',
+    },
+    {
+      q: 'Van közös lejutás edzésre?',
+      a: 'Igen, a Messenger csoportban az edzéskoordinátorok szervezik a közös lejutást a Schönherzből.',
+    },
+  ];
+
   return (
     <div className="py-10 bg-slate-50 flex-1">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,7 +110,7 @@ export default function ContactPage() {
             Üzenj nekünk!
           </h1>
           <p className="text-slate-600 mt-2 text-sm sm:text-base leading-relaxed">
-            Kérdésed van az edzésekről, a Röpikupáról, vagy szeretnél szponzorként / partnerként kapcsolatba lépni velünk? Írj nekünk az alábbi űrlapon!
+            Kérdésed van az edzésekről, a Röpikupáról, vagy valamilyen ötleted, véleményed van a körrel kapcsolatban? Írj nekünk az alábbi űrlapon!
           </p>
         </div>
 
@@ -148,7 +172,7 @@ export default function ContactPage() {
                 <input
                   type="text"
                   required
-                  placeholder="pl. Kérdés a kezdő edzésekről"
+                  placeholder="pl. Vélemény / ötlet a körrel kapcsolatban"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
@@ -162,7 +186,7 @@ export default function ContactPage() {
                 <textarea
                   rows={5}
                   required
-                  placeholder="Írd le a kérdésedet vagy észrevételedet..."
+                  placeholder="Írd le bátran az észrevételedet, ötletedet vagy kérdésedet..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm resize-y"
@@ -191,7 +215,7 @@ export default function ContactPage() {
             </form>
           </div>
 
-          {/* Contact Details & Locations info */}
+          {/* Contact Details & Q&A FAQ */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
               <h3 className="font-bold text-slate-900 text-lg border-b pb-3 border-slate-100">
@@ -202,9 +226,24 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3">
                   <Mail className="w-5 h-5 text-vik-blue-700 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-slate-800 block">Központi e-mail cím</span>
-                    <a href="mailto:info@ropikor.hu" className="text-vik-blue-700 hover:underline">
-                      info@ropikor.hu
+                    <span className="font-semibold text-slate-800 block">E-mail</span>
+                    <a href="mailto:ropikorvik@gmail.com" className="text-vik-blue-700 hover:underline">
+                      ropikorvik@gmail.com
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Instagram className="w-5 h-5 text-pink-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-slate-800 block">Instagram</span>
+                    <a 
+                      href="https://instagram.com/ropikor_vik" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-pink-600 hover:underline font-medium"
+                    >
+                      @ropikor_vik
                     </a>
                   </div>
                 </div>
@@ -212,7 +251,7 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3">
                   <Building2 className="w-5 h-5 text-vik-blue-700 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-slate-800 block">Kollégiumi székhely</span>
+                    <span className="font-semibold text-slate-800 block">Kollégium</span>
                     <span className="text-slate-600">
                       Schönherz Zoltán Kollégium, 1117 Budapest, Irinyi József u. 42.
                     </span>
@@ -231,26 +270,27 @@ export default function ContactPage() {
               </div>
             </div>
 
+            {/* Q&A Section */}
             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <h3 className="font-bold text-slate-900 text-lg border-b pb-3 border-slate-100 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-vik-gold-500" />
-                <span>Edzéshelyszíneink</span>
+                <HelpCircle className="w-5 h-5 text-vik-gold-500" />
+                <span>Gyakori kérdések (Q&A)</span>
               </h3>
 
-              <ul className="space-y-3 text-xs sm:text-sm text-slate-600">
-                <li className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <strong className="text-slate-800 block">BME Sportközpont</strong>
-                  <span>1111 Budapest, Bertalan Lajos u. 4-6.</span>
-                </li>
-                <li className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <strong className="text-slate-800 block">Óbudai Egyetem Sportcsarnok</strong>
-                  <span>1034 Budapest, Doberdó út 6.</span>
-                </li>
-                <li className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <strong className="text-slate-800 block">BME Strandröplabda Pálya</strong>
-                  <span>1111 Budapest, Műegyetem rkp. 3. (Központi kampusz)</span>
-                </li>
-              </ul>
+              <div className="space-y-3">
+                {faqItems.map((item, index) => (
+                  <div key={index} className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                    <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-start gap-1.5">
+                      <span className="text-vik-blue-700 font-extrabold">Q:</span>
+                      <span>{item.q}</span>
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-700 pl-4 flex items-start gap-1.5">
+                      <span className="text-emerald-700 font-extrabold">A:</span>
+                      <span>{item.a}</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

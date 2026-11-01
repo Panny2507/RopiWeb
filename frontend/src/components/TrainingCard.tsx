@@ -69,17 +69,29 @@ export default function TrainingCard({
     return 'bg-emerald-500';
   };
 
-  const getTypeBadgeColor = (type: Training['type']) => {
-    switch (type) {
-      case 'Gyakorlás':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Meccs':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Szabad edzés':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      default:
-        return 'bg-slate-100 text-slate-800 border-slate-200';
+  // Location-based border styling as requested:
+  // Óbudai, Bercsényi, Kármán, Strandröpi, Sportközpont have distinct border colors
+  const getVenueBorderClass = (location: string, title: string = '') => {
+    const loc = `${location} ${title}`.toLowerCase();
+    if (loc.includes('óbudai') || loc.includes('obudai') || loc.includes('doberdó') || loc.includes('doberdo')) {
+      return 'border-purple-500 hover:border-purple-600 shadow-purple-50';
     }
+    if (loc.includes('bercsényi') || loc.includes('bercsenyi')) {
+      return 'border-amber-500 hover:border-amber-600 shadow-amber-50';
+    }
+    if (loc.includes('kármán') || loc.includes('karman')) {
+      return 'border-emerald-500 hover:border-emerald-600 shadow-emerald-50';
+    }
+    if (loc.includes('strand')) {
+      return 'border-yellow-500 hover:border-yellow-600 shadow-yellow-50';
+    }
+    if (loc.includes('sportközpont') || loc.includes('sportkozpont')) {
+      return 'border-blue-500 hover:border-blue-600 shadow-blue-50';
+    }
+    if (loc.includes('sporttelep')) {
+      return 'border-cyan-500 hover:border-cyan-600 shadow-cyan-50';
+    }
+    return 'border-slate-300 hover:border-slate-400';
   };
 
   const handleRegister = async () => {
@@ -127,32 +139,17 @@ export default function TrainingCard({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+    <div className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all border-2 overflow-hidden flex flex-col justify-between ${getVenueBorderClass(training.location, training.title)}`}>
       <div className="p-5 sm:p-6 space-y-4">
-        {/* Top bar: Type badge + Registered status badge */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getTypeBadgeColor(
-              training.type
-            )}`}
-          >
-            {training.type}
-          </span>
-
-          {isRegistered && (
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-300">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Már regisztráltál
-            </span>
-          )}
-
-          {isWaitlisted && (
+        {/* Top status bar (No type badge or registered badge as requested) */}
+        {isWaitlisted && (
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
               <Clock3 className="w-3.5 h-3.5" />
               Várólistán ({waitlistIndex}. hely)
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Title */}
         <div>

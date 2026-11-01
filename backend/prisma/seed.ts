@@ -10,8 +10,10 @@ async function main() {
   await prisma.auditLog.deleteMany();
   await prisma.registration.deleteMany();
   await prisma.training.deleteMany();
+  await prisma.cupTeamMember.deleteMany();
   await prisma.cupTeam.deleteMany();
   await prisma.cupResult.deleteMany();
+  await prisma.cupSchedule.deleteMany();
   await prisma.message.deleteMany();
   await prisma.user.deleteMany();
 
@@ -83,17 +85,17 @@ async function main() {
 
   console.log(`✅ 5 felhasználó sikeresen létrehozva.`);
 
-  // 3. Edzések létrehozása (5-6 db közelgő edzés)
+  // 3. Edzések létrehozása (default 20 hely, különböző helyszínekkel, időrendben)
   const training1 = await prisma.training.create({
     data: {
-      title: 'BME Edzés - Hétfő',
-      description: 'Alapozó technikai és taktikai edzés a hét indításaként.',
-      location: 'BME',
-      address: 'BME Q épület',
-      date: new Date('2026-10-20T18:00:00Z'),
+      title: 'BME Sportközpont Edzés - Hétfő',
+      description: 'Technikai és taktikai játék a hét indításaként.',
+      location: 'BME Sportközpont',
+      address: '1111 Budapest, Bertalan Lajos u. 4-6.',
+      date: new Date('2026-11-02T18:00:00Z'),
       startTime: '18:00',
       endTime: '20:00',
-      maxParticipants: 12,
+      maxParticipants: 20,
       type: 'GYAKORLÁS',
       createdBy: admin.id,
     },
@@ -101,83 +103,82 @@ async function main() {
 
   const training2 = await prisma.training.create({
     data: {
-      title: 'BME Edzés - Szerda',
-      description: 'Támadásépítés, feladás-ütés összhang és blokk-védekezés.',
-      location: 'BME',
-      address: 'BME Q épület',
-      date: new Date('2026-10-22T18:00:00Z'),
-      startTime: '18:00',
-      endTime: '20:00',
-      maxParticipants: 12,
-      type: 'GYAKORLÁS',
+      title: 'Óbudai Edzés - Kedd',
+      description: 'Pörgős meccsezés a Doberdó úti Kollégium tornatermében.',
+      location: 'Óbudai Egyetem - Doberdó úti Kollégium tornaterem',
+      address: '1034 Budapest, Doberdó út 6.',
+      date: new Date('2026-11-03T17:00:00Z'),
+      startTime: '17:00',
+      endTime: '19:00',
+      maxParticipants: 20,
+      type: 'MECCS',
       createdBy: admin.id,
     },
   });
 
   const training3 = await prisma.training.create({
     data: {
-      title: 'Óbudai Edzés - Kedd',
-      description: 'Gyakorló edzés az Óbudai Egyetem sportcsarnokában.',
-      location: 'ÓBUDAI',
-      address: 'Óbudai Egyetem',
-      date: new Date('2026-10-21T17:00:00Z'),
-      startTime: '17:00',
-      endTime: '19:00',
-      maxParticipants: 10,
-      type: 'GYAKORLÁS',
+      title: 'Bercsényi Edzés - Szerda',
+      description: 'Közös játék a Bercsényi Kollégium tornatermében.',
+      location: 'Bercsényi Kollégium tornaterem',
+      address: '1117 Budapest, Bercsényi u. 28-30.',
+      date: new Date('2026-11-04T19:00:00Z'),
+      startTime: '19:00',
+      endTime: '21:00',
+      maxParticipants: 20,
+      type: 'SZABAD_EDZÉS',
       createdBy: admin.id,
     },
   });
 
   const training4 = await prisma.training.create({
     data: {
-      title: 'Strand Röplabda - Szombat',
-      description: 'Szabadtéri strandröplabda edzés a Lupa beachen, jó idő esetén.',
-      location: 'STRAND',
-      address: 'Lupa Beach',
-      date: new Date('2026-10-25T10:00:00Z'),
-      startTime: '10:00',
-      endTime: '12:00',
-      maxParticipants: 8,
-      type: 'SZABAD_EDZÉS',
+      title: 'Kármán Edzés - Csütörtök',
+      description: 'Edzés és jókedv a Kármán Kollégium tornatermében.',
+      location: 'Kármán Tódor Kollégium tornaterem',
+      address: '1111 Budapest, Kruspér u. 2-4.',
+      date: new Date('2026-11-05T18:30:00Z'),
+      startTime: '18:30',
+      endTime: '20:30',
+      maxParticipants: 20,
+      type: 'GYAKORLÁS',
       createdBy: admin.id,
     },
   });
 
   const training5 = await prisma.training.create({
     data: {
-      title: 'BME Mini Meccs - Péntek',
-      description: 'Edzőmérkőzés 3 nyert szettre a kör tagjai és meghívott vendégek között.',
-      location: 'BME',
-      address: 'BME Q épület',
-      date: new Date('2026-10-24T19:00:00Z'),
-      startTime: '19:00',
-      endTime: '21:00',
-      maxParticipants: 14,
-      type: 'MECCS',
+      title: 'BME Sporttelep Strandröpi - Szombat',
+      description: 'Strandröplabda edzés a BME Sporttelepen, homokon.',
+      location: 'BME Sporttelep - Strandröplabda pálya',
+      address: '1111 Budapest, Bogdánfy Ödön u. 10.',
+      date: new Date('2026-11-07T10:00:00Z'),
+      startTime: '10:00',
+      endTime: '12:00',
+      maxParticipants: 20,
+      type: 'SZABAD_EDZÉS',
       createdBy: admin.id,
     },
   });
 
   const training6 = await prisma.training.create({
     data: {
-      title: 'Betelt edzés',
-      description: 'Kiscsoportos feladó-ütő tréning, limitált 2 fős létszámmal (tesztelésre).',
-      location: 'BME',
-      address: 'BME Q épület',
-      date: new Date('2026-10-23T18:00:00Z'),
-      startTime: '18:00',
-      endTime: '20:00',
-      maxParticipants: 2,
-      type: 'GYAKORLÁS',
+      title: 'BME Sportközpont Mini Bajnokság - Vasárnap',
+      description: 'Kupára felkészítő meccsek a Sportközpontban.',
+      location: 'BME Sportközpont',
+      address: '1111 Budapest, Bertalan Lajos u. 4-6.',
+      date: new Date('2026-11-08T15:00:00Z'),
+      startTime: '15:00',
+      endTime: '18:00',
+      maxParticipants: 20,
+      type: 'MECCS',
       createdBy: admin.id,
     },
   });
 
-  console.log(`✅ 6 edzés sikeresen létrehozva.`);
+  console.log(`✅ 6 edzés létrehozva.`);
 
-  // 4. Jelentkezések (teszteléshez és EF-2 funkcióhoz)
-  // Training 1: User1 ACCEPTED, User2 ACCEPTED
+  // 4. Jelentkezések rögzítése
   await prisma.registration.create({
     data: {
       trainingId: training1.id,
@@ -196,90 +197,96 @@ async function main() {
     },
   });
 
-  // Training 6 (betelt, max 2): User1 ACCEPTED, User2 ACCEPTED, User3 WAITLISTED
-  await prisma.registration.create({
+  console.log(`✅ Jelentkezések rögzítve.`);
+
+  // 5. Röpikupa csapatok (Kizárólag Vegyes kategóriában, játékos attribútumokkal)
+  const team1 = await prisma.cupTeam.create({
     data: {
-      trainingId: training6.id,
-      userId: user1.id,
-      status: 'ACCEPTED',
-      position: 1,
+      teamName: 'Villany Ászok',
+      captainName: 'Kovács Péter',
+      captainEmail: 'kovacs.peter@ropikor.hu',
+      captainUserId: admin.id,
+      memberCount: 6,
+      category: 'Pro',
+      cupEdition: 'IV. VRK 2026',
+      acceptedRules: true,
+      status: 'CONFIRMED',
+      members: {
+        create: [
+          { name: 'Kovács Péter', isVik: true, isBme: true, isFemale: false },
+          { name: 'Nagy Anna', isVik: true, isBme: true, isFemale: true },
+          { name: 'Kiss Bence', isVik: true, isBme: true, isFemale: false },
+          { name: 'Szabó Eszter', isVik: false, isBme: true, isFemale: true },
+          { name: 'Horváth Márk', isVik: true, isBme: true, isFemale: false },
+          { name: 'Tóth Zsófia', isVik: false, isBme: false, isFemale: true },
+        ],
+      },
     },
   });
 
-  await prisma.registration.create({
+  const team2 = await prisma.cupTeam.create({
     data: {
-      trainingId: training6.id,
-      userId: user2.id,
-      status: 'ACCEPTED',
-      position: 2,
+      teamName: 'Schönherz Sáncolók',
+      captainName: 'Balogh Tamás',
+      captainEmail: 'tamas@ropikor.hu',
+      memberCount: 6,
+      category: 'Casual',
+      cupEdition: 'IV. VRK 2026',
+      acceptedRules: true,
+      status: 'SUBMITTED',
+      members: {
+        create: [
+          { name: 'Balogh Tamás', isVik: true, isBme: true, isFemale: false },
+          { name: 'Kerekes Luca', isVik: true, isBme: true, isFemale: true },
+          { name: 'Varga Dániel', isVik: true, isBme: true, isFemale: false },
+          { name: 'Molnár Gábor', isVik: true, isBme: true, isFemale: false },
+          { name: 'Farkas Lili', isVik: false, isBme: true, isFemale: true },
+          { name: 'Papp Balázs', isVik: false, isBme: false, isFemale: false },
+        ],
+      },
     },
   });
 
-  await prisma.registration.create({
+  const team3 = await prisma.cupTeam.create({
     data: {
-      trainingId: training6.id,
-      userId: user3.id,
-      status: 'WAITLISTED',
-      position: 3,
+      teamName: 'Mixed Signals',
+      captainName: 'Takács Dóra',
+      captainEmail: 'dora@ropikor.hu',
+      memberCount: 6,
+      category: 'Pro',
+      cupEdition: 'V. VRK 2027',
+      acceptedRules: true,
+      status: 'SUBMITTED',
+      members: {
+        create: [
+          { name: 'Takács Dóra', isVik: true, isBme: true, isFemale: true },
+          { name: 'Bíró László', isVik: true, isBme: true, isFemale: false },
+          { name: 'Oláh Boglárka', isVik: true, isBme: true, isFemale: true },
+          { name: 'Gál Marcell', isVik: false, isBme: true, isFemale: false },
+          { name: 'Simon Vivien', isVik: false, isBme: false, isFemale: true },
+          { name: 'Németh Tamás', isVik: true, isBme: true, isFemale: false },
+        ],
+      },
     },
   });
 
-  console.log(`✅ Jelentkezések rögzítve (beleértve a betelt edzés várólistáját).`);
+  console.log(`✅ 3 kupa csapat létrehozva (kizárólag Vegyes kategória).`);
 
-  // 5. Röpikupa csapatok (CupTeam)
-  await prisma.cupTeam.createMany({
-    data: [
-      {
-        teamName: 'Röpi Királyok',
-        captainName: 'Horváth Ádám',
-        captainEmail: 'adam@ropikor.hu',
-        memberCount: 6,
-        category: 'FÉRFI',
-        cupEdition: 'IV. VRK 2026',
-        acceptedRules: true,
-        status: 'SUBMITTED',
-      },
-      {
-        teamName: 'Spike Girls',
-        captainName: 'Kovács Dóra',
-        captainEmail: 'dora@ropikor.hu',
-        memberCount: 6,
-        category: 'NŐI',
-        cupEdition: 'IV. VRK 2026',
-        acceptedRules: true,
-        status: 'CONFIRMED',
-      },
-      {
-        teamName: 'Villámcsapás',
-        captainName: 'Balogh Tamás',
-        captainEmail: 'tamas@ropikor.hu',
-        memberCount: 8,
-        category: 'VEGYES',
-        cupEdition: 'IV. VRK 2026',
-        acceptedRules: true,
-        status: 'SUBMITTED',
-      },
-    ],
-  });
-
-  console.log(`✅ 3 kupa csapat regisztrálva.`);
-
-  // 6. Korábbi kupa eredmények (CupResult)
+  // 6. Korábbi kupa eredmények (Kizárólag Vegyes kategória)
   await prisma.cupResult.createMany({
     data: [
-      // I. VRK 2023 - Férfi
       {
         cupEdition: 'I. VRK 2023',
         year: 2023,
-        category: 'FÉRFI',
+        category: 'VEGYES',
         placement: 1,
-        teamName: 'Röpi Kör',
-        notes: 'Aranyérem, veretlen menetelés',
+        teamName: 'BME VIK Röpi Kör',
+        notes: 'Aranyérem, veretlen menetelés a tornán',
       },
       {
         cupEdition: 'I. VRK 2023',
         year: 2023,
-        category: 'FÉRFI',
+        category: 'VEGYES',
         placement: 2,
         teamName: 'Dirac Delta Spike',
         notes: 'Ezüstérem',
@@ -287,75 +294,35 @@ async function main() {
       {
         cupEdition: 'I. VRK 2023',
         year: 2023,
-        category: 'FÉRFI',
+        category: 'VEGYES',
         placement: 3,
         teamName: 'Villámcsapás',
         notes: 'Bronzérem',
       },
-
-      // II. VRK 2024 - Férfi
       {
         cupEdition: 'II. VRK 2024',
         year: 2024,
-        category: 'FÉRFI',
+        category: 'VEGYES',
         placement: 1,
         teamName: 'Dirac Delta Spike',
-        notes: 'Bajnok',
+        notes: 'Bajnok csapat',
       },
       {
         cupEdition: 'II. VRK 2024',
         year: 2024,
-        category: 'FÉRFI',
+        category: 'VEGYES',
         placement: 2,
-        teamName: 'Röpi Kör',
+        teamName: 'Villany Ászok',
         notes: 'Második helyezett',
       },
       {
         cupEdition: 'II. VRK 2024',
         year: 2024,
-        category: 'FÉRFI',
+        category: 'VEGYES',
         placement: 3,
         teamName: 'LabView Legends',
         notes: 'Harmadik helyezett',
       },
-
-      // II. VRK 2024 - Női
-      {
-        cupEdition: 'II. VRK 2024',
-        year: 2024,
-        category: 'NŐI',
-        placement: 1,
-        teamName: 'Spike Girls',
-        notes: 'Női kategória győztes',
-      },
-      {
-        cupEdition: 'II. VRK 2024',
-        year: 2024,
-        category: 'NŐI',
-        placement: 2,
-        teamName: 'Net Ninjas',
-        notes: 'Női kategória 2. hely',
-      },
-
-      // III. VRK 2025 - Férfi Selejtező és Döntő
-      {
-        cupEdition: 'III. VRK 2025',
-        year: 2025,
-        category: 'FÉRFI',
-        placement: 1,
-        teamName: 'Dirac Delta Spike',
-        notes: 'Döntő győztes',
-      },
-      {
-        cupEdition: 'III. VRK 2025',
-        year: 2025,
-        category: 'FÉRFI',
-        placement: 2,
-        teamName: 'Röpi Kör',
-        notes: 'Selejtező 1. hely, döntő 2. hely',
-      },
-
-      // III. VRK 2025 - Vegyes
       {
         cupEdition: 'III. VRK 2025',
         year: 2025,
@@ -369,42 +336,59 @@ async function main() {
         year: 2025,
         category: 'VEGYES',
         placement: 2,
-        teamName: 'Villámcsapás',
+        teamName: 'Schönherz Sáncolók',
         notes: 'Vegyes torna ezüstérmese',
+      },
+      {
+        cupEdition: 'III. VRK 2025',
+        year: 2025,
+        category: 'VEGYES',
+        placement: 3,
+        teamName: 'Villámcsapás',
+        notes: 'Vegyes torna bronzérmese',
       },
     ],
   });
 
-  console.log(`✅ Korábbi kupa eredmények sikeresen rögzítve.`);
+  console.log(`✅ Korábbi kupa eredmények sikeresen rögzítve (kizárólag Vegyes).`);
 
-  // 7. Kapcsolatfelvételi üzenetek (Message)
+  // 7. Kupa lebonyolítás táblázat alapértelmezett bejegyzés
+  const sampleScheduleCsv = `Időpont,Pálya,A csapat,B csapat,Kategória,Játékvezetők\n09:00,1. pálya,Villany Ászok,Schönherz Sáncolók,Vegyes,Röpi Kör bírók\n10:00,1. pálya,Mixed Signals,Infó Blokk,Vegyes,Röpi Kör bírók\n11:30,1. pálya,Elődöntő 1,Elődöntő 2,Vegyes,Röpi Kör bírók\n13:00,1. pálya,Döntő A,Döntő B,Vegyes,Röpi Kör bírók`;
+  await prisma.cupSchedule.create({
+    data: {
+      fileName: 'IV_VRK_2026_lebonyolitas_tablazat.csv',
+      fileData: Buffer.from(sampleScheduleCsv).toString('base64'),
+      mimeType: 'text/csv',
+    },
+  });
+  console.log(`✅ Alapértelmezett lebonyolítási táblázat beállítva.`);
+
+  // 8. Kapcsolatfelvételi tesztüzenetek
   await prisma.message.createMany({
     data: [
       {
         senderName: 'Horváth Lili',
         senderEmail: 'lili.horvath@example.com',
-        subject: 'Csatlakozás',
-        body: 'Szia! Szeretnék csatlakozni a röplabda körhöz. Mikor van a következő nyílt edzés?',
+        subject: 'Csatlakozási lehetőség',
+        body: 'Szia! Nagyon tetszik a közösségetek, mikor tudnék lemenni az első edzésetekre?',
         isRead: false,
       },
       {
         senderName: 'Varga Márk',
         senderEmail: 'mark.varga@example.com',
-        subject: 'Terem bérlés',
-        body: 'Lehetne-e extra edzést szervezni szombat délelőttre?',
+        subject: 'Ötlet új edzésidőpontra',
+        body: 'Szerintem szuper lenne vasárnap esténként is egy szabad játék edzés.',
         isRead: true,
       },
     ],
   });
 
-  console.log(`✅ Kapcsolatfelvételi tesztüzenetek létrehozva.`);
-
-  // 8. Kezdeti audit napló
+  // 9. Kezdeti audit napló
   await prisma.auditLog.create({
     data: {
       userId: admin.id,
       action: 'INITIAL_SEED_COMPLETED',
-      details: 'A rendszer sikeresen inicializálva a kiindulási tesztadatokkal.',
+      details: 'A rendszer frissítve a legújabb specifikációknak és követelményeknek megfelelően.',
       ipAddress: '127.0.0.1',
     },
   });

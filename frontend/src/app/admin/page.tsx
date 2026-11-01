@@ -9,7 +9,8 @@ import {
   User, 
   AuditLog, 
   TrainingType, 
-  UserRole 
+  UserRole,
+  CupScheduleInfo
 } from '@/types';
 import { api } from '@/lib/api';
 import { 
@@ -28,10 +29,12 @@ import {
   X, 
   Clock, 
   Loader2,
-  FileText
+  FileSpreadsheet,
+  UploadCloud,
+  Download
 } from 'lucide-react';
 
-type AdminTab = 'trainings' | 'messages' | 'users' | 'audit';
+type AdminTab = 'trainings' | 'messages' | 'users' | 'audit' | 'cup';
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -42,18 +45,19 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [scheduleInfo, setScheduleInfo] = useState<CupScheduleInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Notifications
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // New Training Form
+  // New Training Form - default 20 places as requested
   const [trainingTitle, setTrainingTitle] = useState('');
-  const [trainingLocation, setTrainingLocation] = useState('BME Sportközpont - BME Terem');
+  const [trainingLocation, setTrainingLocation] = useState('BME Sportközpont');
   const [trainingDate, setTrainingDate] = useState('');
   const [trainingType, setTrainingType] = useState<TrainingType>('Gyakorlás');
-  const [trainingMax, setTrainingMax] = useState<number>(14);
+  const [trainingMax, setTrainingMax] = useState<number>(20);
   const [trainingDesc, setTrainingDesc] = useState('');
   const [submittingTraining, setSubmittingTraining] = useState(false);
 
@@ -63,19 +67,25 @@ export default function AdminPage() {
   // Message preview modal state
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
 
+  // Drag and drop state for tournament schedule
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadingSchedule, setUploadingSchedule] = useState(false);
+
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [tList, mList, uList, aList] = await Promise.all([
+      const [tList, mList, uList, aList, sched] = await Promise.all([
         api.trainings.getAll(),
         api.contact.getMessages(),
         api.users.getAll(),
         api.auditLogs.getAll(),
+        api.cup.getSchedule(),
       ]);
       setTrainings(tList);
       setMessages(mList);
       setUsers(uList);
       setAuditLogs(aList);
+      setScheduleInfo(sched);
     } catch (err: any) {
       setErrorMsg('Hiba történt az admin adatok betöltésekor.');
     } finally {
@@ -107,7 +117,6 @@ export default function AdminPage() {
       return;
     }
 
-    // Specification EF-3: Validation for past dates
     const selectedDateTime = new Date(trainingDate).getTime();
     if (selectedDateTime < Date.now() - 3600000) {
       notifyError('Hiba: Nem hozható létre edzés múltbeli időponttal!');
@@ -149,11 +158,11 @@ export default function AdminPage() {
         notifySuccess('Új edzés sikeresen meghirdetve!');
       }
 
-      // Reset form
+      // Reset form to default 20
       setTrainingTitle('');
       setTrainingDate('');
       setTrainingDesc('');
-      setTrainingMax(14);
+      setTrainingMax(20);
       setTrainingType('Gyakorlás');
 
       const updated = await api.trainings.getAll();
@@ -171,7 +180,6 @@ export default function AdminPage() {
     setEditingTrainingId(t.id);
     setTrainingTitle(t.title);
     setTrainingLocation(t.location);
-    // Format for datetime-local: YYYY-MM-DDTHH:mm
     const dt = new Date(t.date);
     const formatted = dt.toISOString().slice(0, 16);
     setTrainingDate(formatted);
@@ -186,7 +194,7 @@ export default function AdminPage() {
     setTrainingTitle('');
     setTrainingDate('');
     setTrainingDesc('');
-    setTrainingMax(14);
+    setTrainingMax(20);
     setTrainingType('Gyakorlás');
   };
 
@@ -279,24 +287,93 @@ export default function AdminPage() {
     }
   };
 
+  // --- SCHEDULE FILE DRAG & DROP HANDLERS ---
+  const handleFileUpload = async (file: File) => {
+    if (!/\.xlsx$/i.test(file.name)) {
+      notifyError('A lebonyolítási fájl formátuma csak .xlsx lehet.');
+      return;
+    }
+
+    setUploadingSchedule(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const result = reader.result as string;
+          // Extract base64 part
+          const base64Data = result.split(',')[1] || result;
+          const updated = await api.cup.uploadSchedule({
+            fileName: file.name,
+            fileData: base64Data,
+            mimeType: file.type || 'application/octet-stream',
+          });
+          setScheduleInfo(updated);
+          api.auditLogs.addLog(
+            'Kupa lebonyolítás táblázat feltöltve',
+            user?.name || 'Admin',
+            `Fájl: ${file.name}`
+          );
+          notifySuccess(`A(z) "${file.name}" táblázat sikeresen behúzva és feltöltve!`);
+        } catch (err: any) {
+          notifyError(err.message || 'Hiba történt a táblázat feltöltésekor.');
+        } finally {
+          setUploadingSchedule(false);
+        }
+      };
+      reader.onerror = () => {
+        notifyError('Hiba történt a fájl olvasásakor.');
+        setUploadingSchedule(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      notifyError(err.message || 'Hiba a fájlfeltöltés előkészítésekor.');
+      setUploadingSchedule(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDeleteSchedule = async () => {
+    if (!confirm('Biztosan törölni szeretnéd a kupa lebonyolítási táblázatot? Ekkor a látogatóknak az "Jelenleg nem elérhető a kupa lebonyolítása" felirat fog megjelenni.')) return;
+    try {
+      await api.cup.deleteSchedule();
+      setScheduleInfo({ hasSchedule: false, fileName: null, updatedAt: null });
+      api.auditLogs.addLog(
+        'Kupa lebonyolítás táblázat törölve',
+        user?.name || 'Admin',
+        'Táblázat eltávolítva'
+      );
+      notifySuccess('A kupa lebonyolítási táblázat sikeresen törölve.');
+    } catch {
+      notifyError('Hiba a táblázat törlésekor.');
+    }
+  };
+
   const unreadMessagesCount = messages.filter((m) => !m.isRead).length;
 
   return (
     <ProtectedRoute adminOnly={true}>
       <div className="py-10 bg-slate-50 flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
+          {/* Header - Vezetőségi Irányítópult as requested */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <div className="inline-flex items-center gap-2 text-amber-700 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2">
                 <ShieldCheck className="w-5 h-5 text-vik-gold-500" />
-                <span>Körvezetői Irányítópult</span>
+                <span>Vezetőségi Irányítópult</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
                 Adminisztrációs Felület
               </h1>
               <p className="text-slate-600 mt-1 text-sm sm:text-base">
-                Kezeld az edzéseket, a beérkezett kapcsolatfelvételeket, a tagsági jogosultságokat és az audit naplót.
+                Kezeld az edzéseket, a kupa lebonyolítási táblázatot, a beérkezett kapcsolatfelvételeket, a tagsági jogosultságokat és az audit naplót.
               </p>
             </div>
           </div>
@@ -331,6 +408,23 @@ export default function AdminPage() {
               <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200/60 text-slate-700 ml-1">
                 {trainings.length}
               </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('cup')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                activeTab === 'cup'
+                  ? 'bg-vik-blue-700 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Kupa lebonyolítás táblázat</span>
+              {scheduleInfo?.hasSchedule && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold ml-1">
+                  Aktív
+                </span>
+              )}
             </button>
 
             <button
@@ -424,7 +518,7 @@ export default function AdminPage() {
                         <input
                           type="text"
                           required
-                          placeholder="pl. Pénteki Meccsezés"
+                          placeholder="pl. BME Sportközpont Edzés"
                           value={trainingTitle}
                           onChange={(e) => setTrainingTitle(e.target.value)}
                           className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
@@ -441,18 +535,18 @@ export default function AdminPage() {
                           onChange={(e) => setTrainingLocation(e.target.value)}
                           className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm bg-white"
                         >
-                          <option value="BME Sportközpont - BME Terem">BME Sportközpont - BME Terem</option>
-                          <option value="Bercsényi tornaterem">Bercsényi tornaterem</option>
-                          <option value="Kármán tornaterem">Kármán tornaterem</option>
-                          <option value="Óbudai Egyetem Sportcsarnok">Óbudai Egyetem Sportcsarnok</option>
-                          <option value="BME Strandröplabda pálya (Központi Kampusz)">BME Strandröplabda pálya</option>
+                          <option value="BME Sportközpont">BME Sportközpont</option>
+                          <option value="Óbudai Egyetem - Doberdó úti Kollégium tornaterem">Óbudai Egyetem - Doberdó úti Kollégium tornaterem</option>
+                          <option value="Bercsényi Kollégium tornaterem">Bercsényi Kollégium tornaterem</option>
+                          <option value="Kármán Tódor Kollégium tornaterem">Kármán Tódor Kollégium tornaterem</option>
+                          <option value="BME Sporttelep - Strandröplabda pálya">BME Sporttelep - Strandröplabda pálya</option>
                         </select>
                       </div>
 
                       {/* Date & Time */}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                          Időpont (Kezdés) <span className="text-red-500">*</span>
+                          Dátum és Időpont <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="datetime-local"
@@ -463,118 +557,297 @@ export default function AdminPage() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Type */}
-                        <div>
-                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                            Típus <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            value={trainingType}
-                            onChange={(e) => setTrainingType(e.target.value as TrainingType)}
-                            className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm bg-white"
-                          >
-                            <option value="Gyakorlás">Gyakorlás</option>
-                            <option value="Meccs">Meccs</option>
-                            <option value="Szabad edzés">Szabad edzés</option>
-                          </select>
-                        </div>
-
-                        {/* Max Participants */}
-                        <div>
-                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                            Max létszám <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            required
-                            min={2}
-                            max={40}
-                            value={trainingMax}
-                            onChange={(e) => setTrainingMax(parseInt(e.target.value) || 12)}
-                            className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
-                          />
-                        </div>
+                      {/* Capacity - Default 20 as requested */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                          Maximális Létszám (fő) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          min="1"
+                          max="100"
+                          value={trainingMax}
+                          onChange={(e) => setTrainingMax(parseInt(e.target.value, 10) || 20)}
+                          className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
+                        />
+                        <span className="text-[11px] text-slate-500 mt-0.5 block">Alapértelmezett: 20 hely</span>
                       </div>
 
                       {/* Description */}
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                          Leírás, instrukciók
+                          Leírás (opcionális)
                         </label>
                         <textarea
                           rows={3}
-                          placeholder="pl. Kérjük hozz fekete és fehér pólót is!"
+                          placeholder="pl. Technikai gyakorlatok, játék..."
                           value={trainingDesc}
                           onChange={(e) => setTrainingDesc(e.target.value)}
                           className="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-vik-blue-600 text-sm"
                         />
                       </div>
 
-                      <button
-                        type="submit"
-                        disabled={submittingTraining}
-                        className="w-full py-2.5 px-4 rounded-xl font-bold text-white bg-vik-blue-700 hover:bg-vik-blue-800 disabled:opacity-50 shadow-md transition-all flex items-center justify-center gap-2 text-sm"
-                      >
-                        {submittingTraining ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : editingTrainingId ? (
-                          <>
-                            <Edit3 className="w-4 h-4" />
-                            <span>Módosítások mentése</span>
-                          </>
-                        ) : (
-                          <>
-                            <PlusCircle className="w-4 h-4" />
-                            <span>Edzés meghirdetése</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={submittingTraining}
+                          className="w-full py-2.5 px-4 rounded-xl font-bold text-white bg-vik-blue-700 hover:bg-vik-blue-800 disabled:opacity-50 shadow transition-all flex items-center justify-center gap-2 text-sm"
+                        >
+                          {submittingTraining ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Mentés folyamatban...</span>
+                            </>
+                          ) : (
+                            <span>{editingTrainingId ? 'Edzés frissítése' : 'Edzés meghirdetése'}</span>
+                          )}
+                        </button>
+                      </div>
                     </form>
                   </div>
 
                   {/* Existing Trainings List */}
                   <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                      <span>Meghirdetett edzések</span>
-                      <span className="text-xs font-semibold text-slate-500">
-                        Összesen: {trainings.length}
-                      </span>
-                    </h2>
+                    <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                      <h2 className="text-lg font-bold text-slate-900">
+                        Meghirdetett edzések ({trainings.length})
+                      </h2>
+                    </div>
 
-                    <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                      {trainings.map((t) => (
-                        <div
-                          key={t.id}
-                          className="p-4 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                        >
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 text-sm">{t.title}</span>
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                                {t.type}
-                              </span>
+                    {trainings.length === 0 ? (
+                      <p className="text-sm text-slate-500 italic py-8 text-center">
+                        Még nincsenek meghirdetett edzések a rendszerben.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {trainings.map((t) => (
+                          <div
+                            key={t.id}
+                            className="p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-blue-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                          >
+                            <div>
+                              <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+                                {t.title}
+                              </h3>
+                              <div className="text-xs text-slate-500 flex flex-wrap items-center gap-3 mt-1">
+                                <span>{t.location}</span>
+                                <span>•</span>
+                                <span>{new Date(t.date).toLocaleDateString('hu-HU')}</span>
+                                <span>•</span>
+                                <span className="font-semibold text-slate-700">
+                                  {t.participants.length}/{t.maxParticipants} fő
+                                </span>
+                              </div>
                             </div>
-                            <div className="text-xs text-slate-600">
-                              {t.location} • {new Date(t.date).toLocaleString('hu-HU')}
+
+                            <div className="flex items-center gap-2 self-end sm:self-center">
+                              <button
+                                onClick={() => handleEditClick(t)}
+                                className="p-2 text-slate-600 hover:text-vik-blue-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                title="Szerkesztés"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTraining(t.id, t.title)}
+                                className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Törlés"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
-                            <div className="text-xs text-slate-500 font-medium">
-                              Létszám: {t.participants.length} / {t.maxParticipants} fő
-                              {t.waitlist.length > 0 && ` (+${t.waitlist.length} várólistán)`}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: KUPA LEBONYOLÍTÁS TÁBLÁZAT KEZELÉSE */}
+              {activeTab === 'cup' && (
+                <div className="max-w-4xl mx-auto space-y-6">
+                  <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                      <div>
+                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                          <FileSpreadsheet className="w-6 h-6 text-vik-blue-700" />
+                          <span>Kupa lebonyolítás táblázat feltöltése és kezelése</span>
+                        </h2>
+                        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                          Húzz be egy .xlsx formátumú lebonyolítási fájlt, amelyet a látogatók a Röpikupa oldalon közvetlenül letölthetnek és megtekinthetnek.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Current Schedule Status */}
+                    <div className="mb-6">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        Jelenlegi státusz a Röpikupa oldalon
+                      </h3>
+
+                      {scheduleInfo?.hasSchedule ? (
+                        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-start sm:items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                              <FileSpreadsheet className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                                <span>{scheduleInfo.fileName}</span>
+                                <span className="text-[10px] uppercase font-bold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded">
+                                  Aktív
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                A Röpikupa oldalon megjelenik a "Lebonyolítás táblázat ITT" gomb.
+                              </p>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 self-end sm:self-center">
+                          <div className="flex items-center gap-2 shrink-0">
                             <button
-                              onClick={() => handleEditClick(t)}
-                              className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors"
-                              title="Szerkesztés"
+                              type="button"
+                              onClick={() => api.cup.downloadSchedule()}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-sm transition-colors"
                             >
-                              <Edit3 className="w-4 h-4 text-vik-blue-700" />
+                              <Download className="w-4 h-4" />
+                              <span>Teszt letöltés</span>
                             </button>
                             <button
-                              onClick={() => handleDeleteTraining(t.id, t.title)}
-                              className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-red-50 text-red-600 transition-colors"
+                              type="button"
+                              onClick={handleDeleteSchedule}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-xs shadow-sm transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span>Táblázat törlése</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-3 text-sm">
+                          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                          <div>
+                            <span className="font-bold">Nincs behúzva táblázat fájl.</span>
+                            <span className="block text-xs text-amber-800 mt-0.5">
+                              A Röpikupa oldalon a "Jelenleg nem elérhető a kupa lebonyolítása" felirat látható a látogatóknak.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Drag and Drop Zone */}
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        Új táblázat behúzása / feltöltése
+                      </h3>
+
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setIsDragging(true);
+                        }}
+                        onDragLeave={() => setIsDragging(false)}
+                        onDrop={handleDrop}
+                        className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center transition-all ${
+                          isDragging
+                            ? 'border-vik-blue-600 bg-blue-50/70 scale-[1.01]'
+                            : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50 hover:border-vik-blue-400'
+                        }`}
+                      >
+                        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-blue-100 text-vik-blue-700 flex items-center justify-center">
+                          {uploadingSchedule ? (
+                            <Loader2 className="w-7 h-7 animate-spin" />
+                          ) : (
+                            <UploadCloud className="w-7 h-7" />
+                          )}
+                        </div>
+
+                        <h4 className="font-bold text-slate-900 text-base mb-1">
+                          Húzd ide a lebonyolítási táblázatot (.xlsx)
+                        </h4>
+                        <p className="text-xs sm:text-sm text-slate-500 mb-4 max-w-md mx-auto">
+                          Behúzás után azonnal mentésre kerül és elérhetővé válik a nevezők számára.
+                        </p>
+
+                        <div>
+                          <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-vik-blue-700 hover:bg-vik-blue-800 text-white font-bold text-sm cursor-pointer shadow-md transition-all">
+                            <span>Fájl kiválasztása a gépről</span>
+                            <input
+                              type="file"
+                              accept=".xlsx"
+                              className="hidden"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files.length > 0) {
+                                  handleFileUpload(e.target.files[0]);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: ÜZENETEK */}
+              {activeTab === 'messages' && (
+                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                    <h2 className="text-lg font-bold text-slate-900">
+                      Beérkezett megkeresések ({messages.length})
+                    </h2>
+                  </div>
+
+                  {messages.length === 0 ? (
+                    <p className="text-sm text-slate-500 italic py-8 text-center">
+                      Még nem érkezett kapcsolatfelvételi üzenet.
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {messages.map((m) => (
+                        <div
+                          key={m.id}
+                          className={`py-4 px-3 rounded-xl transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                            m.isRead ? 'bg-white hover:bg-slate-50' : 'bg-blue-50/50 hover:bg-blue-50'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900 text-sm">{m.name}</span>
+                              <span className="text-xs text-slate-400">({m.email})</span>
+                              {!m.isRead && (
+                                <span className="text-[10px] font-bold uppercase bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                                  Új
+                                </span>
+                              )}
+                            </div>
+                            <h4 className="font-semibold text-slate-800 text-sm mt-0.5">{m.subject}</h4>
+                            <p className="text-xs text-slate-600 mt-1 line-clamp-2">{m.message}</p>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {!m.isRead && (
+                              <button
+                                onClick={() => handleMarkAsRead(m.id)}
+                                className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+                              >
+                                Olvasottnak jelöl
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setSelectedMessage(m)}
+                              className="p-2 text-slate-600 hover:text-vik-blue-700 hover:bg-slate-100 rounded-lg transition-colors"
+                              title="Megtekintés"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMessage(m.id)}
+                              className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Törlés"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -583,171 +856,11 @@ export default function AdminPage() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
-              {/* TAB 2: ÜZENETEK */}
-              {activeTab === 'messages' && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                      <span>Beérkezett üzenetek ({messages.length})</span>
-                      {unreadMessagesCount > 0 && (
-                        <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">
-                          {unreadMessagesCount} olvasatlan
-                        </span>
-                      )}
-                    </h2>
-
-                    {messages.length === 0 ? (
-                      <p className="text-sm text-slate-500 italic py-8 text-center">
-                        Nincs beérkezett üzenet.
-                      </p>
-                    ) : (
-                      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                        {messages.map((m) => (
-                          <div
-                            key={m.id}
-                            className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                              selectedMessage?.id === m.id
-                                ? 'border-vik-blue-500 bg-blue-50/50'
-                                : m.isRead
-                                ? 'border-slate-200 bg-slate-50/70'
-                                : 'border-amber-300 bg-amber-50/40 shadow-sm'
-                            }`}
-                            onClick={() => setSelectedMessage(m)}
-                          >
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <span className="font-bold text-sm text-slate-900">{m.name}</span>
-                              <span className="text-[11px] text-slate-400">
-                                {new Date(m.createdAt).toLocaleDateString('hu-HU')}
-                              </span>
-                            </div>
-
-                            <div className="text-xs font-semibold text-vik-blue-900 mb-1">
-                              {m.subject}
-                            </div>
-
-                            <p className="text-xs text-slate-600 line-clamp-2 mb-2">
-                              {m.message}
-                            </p>
-
-                            <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
-                              <span className="text-slate-400">{m.email}</span>
-                              <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                {!m.isRead && (
-                                  <button
-                                    onClick={() => handleMarkAsRead(m.id)}
-                                    className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-medium text-[11px]"
-                                  >
-                                    Olvasottnak jelölés
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => handleDeleteMessage(m.id)}
-                                  className="p-1 text-red-500 hover:text-red-700"
-                                  title="Törlés"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Selected Message Preview */}
-                  <div className="lg:col-span-5 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 className="font-bold text-slate-900 text-lg mb-4 pb-2 border-b border-slate-100">
-                      Üzenet részletei
-                    </h3>
-
-                    {selectedMessage ? (
-                      <div className="space-y-4">
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-xs">
-                          <div>
-                            <span className="text-slate-500">Feladó:</span>{' '}
-                            <strong className="text-slate-900">{selectedMessage.name}</strong>
-                          </div>
-                          <div>
-                            <span className="text-slate-500">E-mail:</span>{' '}
-                            <a
-                              href={`mailto:${selectedMessage.email}`}
-                              className="text-vik-blue-700 underline font-medium"
-                            >
-                              {selectedMessage.email}
-                            </a>
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Küldve:</span>{' '}
-                            <span className="text-slate-700">
-                              {new Date(selectedMessage.createdAt).toLocaleString('hu-HU')}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Állapot:</span>{' '}
-                            <span
-                              className={`font-semibold ${
-                                selectedMessage.isRead ? 'text-emerald-600' : 'text-amber-600'
-                              }`}
-                            >
-                              {selectedMessage.isRead ? 'Olvasott' : 'Olvasatlan'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                            Tárgy
-                          </div>
-                          <div className="text-base font-bold text-slate-900">
-                            {selectedMessage.subject}
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                            Üzenet
-                          </div>
-                          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
-                            {selectedMessage.message}
-                          </div>
-                        </div>
-
-                        <div className="pt-2 flex items-center gap-3">
-                          <a
-                            href={`mailto:${selectedMessage.email}?subject=Re: ${encodeURIComponent(
-                              selectedMessage.subject
-                            )}`}
-                            className="flex-1 py-2 px-4 rounded-lg bg-vik-blue-700 hover:bg-vik-blue-800 text-white font-semibold text-xs text-center transition-colors"
-                          >
-                            Válasz írása e-mailben
-                          </a>
-
-                          {!selectedMessage.isRead && (
-                            <button
-                              onClick={() => handleMarkAsRead(selectedMessage.id)}
-                              className="py-2 px-4 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors"
-                            >
-                              Olvasottnak jelölés
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="py-16 text-center text-slate-400">
-                        <Mail className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                        <p className="text-xs">Válassz ki egy üzenetet a megtekintéshez!</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 3: FELHASZNÁLÓK */}
+              {/* TAB 4: FELHASZNÁLÓK */}
               {activeTab === 'users' && (
                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -842,7 +955,7 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* TAB 4: AUDIT LOG */}
+              {/* TAB 5: AUDIT LOG */}
               {activeTab === 'audit' && (
                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                   <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-100">
@@ -893,6 +1006,47 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Message Modal */}
+      {selectedMessage && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <h3 className="font-bold text-slate-900 text-base">Üzenet részletei</h3>
+              <button
+                onClick={() => setSelectedMessage(null)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div>
+                <span className="text-xs font-bold text-slate-400 uppercase">Feladó:</span>
+                <p className="font-semibold text-slate-900">{selectedMessage.name} ({selectedMessage.email})</p>
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-400 uppercase">Tárgy:</span>
+                <p className="font-semibold text-slate-900">{selectedMessage.subject}</p>
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-400 uppercase">Üzenet:</span>
+                <p className="text-slate-700 whitespace-pre-wrap mt-1 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs leading-relaxed">
+                  {selectedMessage.message}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setSelectedMessage(null)}
+                className="px-4 py-2 bg-vik-blue-700 text-white text-xs font-bold rounded-lg hover:bg-vik-blue-800 transition-colors"
+              >
+                Bezárás
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }

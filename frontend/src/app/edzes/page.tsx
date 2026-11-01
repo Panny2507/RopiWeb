@@ -39,27 +39,67 @@ export default function TrainingsPage() {
   const filterTabs: LocationFilter[] = ['Összes', 'BME', 'Bercsényi', 'Kármán', 'Óbudai', 'Strand'];
 
   const filteredTrainings = trainings.filter((training) => {
-    // Filter tab condition
+    const loc = `${training.location} ${training.title}`.toLowerCase();
+
+    // Filter tab conditions according to user requirements:
+    // - BME szűrő: strandröplabda, bercsényi, kármán, sportközpont, sporttelep, bme
+    // - Óbudai: Doberdó úti Kollégium tornaterem, óbudai
+    // - Strand: BME sporttelep, strand
+    // - Bercsényi: bercsényi
+    // - Kármán: kármán
     let matchesTab = true;
     if (selectedFilter === 'BME') {
-      matchesTab = training.location.toLowerCase().includes('bme') && !training.location.toLowerCase().includes('strand');
+      matchesTab =
+        loc.includes('bme') ||
+        loc.includes('strand') ||
+        loc.includes('bercsényi') ||
+        loc.includes('bercsenyi') ||
+        loc.includes('kármán') ||
+        loc.includes('karman') ||
+        loc.includes('sportközpont') ||
+        loc.includes('sportkozpont') ||
+        loc.includes('sporttelep');
     } else if (selectedFilter === 'Óbudai') {
-      matchesTab = training.location.toLowerCase().includes('óbudai') || training.location.toLowerCase().includes('obudai');
+      matchesTab =
+        loc.includes('óbudai') ||
+        loc.includes('obudai') ||
+        loc.includes('doberdó') ||
+        loc.includes('doberdo');
     } else if (selectedFilter === 'Strand') {
-      matchesTab = training.location.toLowerCase().includes('strand') || training.title.toLowerCase().includes('strand');
+      matchesTab =
+        loc.includes('strand') ||
+        loc.includes('sporttelep');
     } else if (selectedFilter === 'Bercsényi') {
-      matchesTab = training.location.toLowerCase().includes('bercsényi');
+      matchesTab =
+        loc.includes('bercsényi') ||
+        loc.includes('bercsenyi');
     } else if (selectedFilter === 'Kármán') {
-      matchesTab = training.location.toLowerCase().includes('kármán');
+      matchesTab =
+        loc.includes('kármán') ||
+        loc.includes('karman');
     }
 
     // Search query condition
     const matchesSearch =
       training.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       training.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      training.type.toLowerCase().includes(searchTerm.toLowerCase());
+      (training.description && training.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return matchesTab && matchesSearch;
+  });
+
+  // Sort by date: closest to now on top, furthest at the very bottom
+  const sortedTrainings = [...filteredTrainings].sort((a, b) => {
+    const now = Date.now();
+    const timeA = new Date(a.date).getTime();
+    const timeB = new Date(b.date).getTime();
+    const diffA = timeA - now;
+    const diffB = timeB - now;
+
+    if (diffA >= 0 && diffB >= 0) return diffA - diffB; // upcoming: closest first
+    if (diffA >= 0 && diffB < 0) return -1; // future before past
+    if (diffA < 0 && diffB >= 0) return 1; // future before past
+    return Math.abs(diffA) - Math.abs(diffB);
   });
 
   return (
@@ -75,7 +115,7 @@ export default function TrainingsPage() {
             Edzés & Foglalások
           </h1>
           <p className="text-slate-600 mt-2 max-w-2xl text-sm sm:text-base">
-            Itt találod a héten induló edzéseinket. A terem és pálya befogadóképessége véges: amennyiben egy edzés megtelik, a jelentkezésed automatikusan várólistára kerül!
+            Itt találod a meghirdetett edzéseinket időrendben. A terem és pálya befogadóképessége alapesetben 20 fő: amennyiben egy edzés megtelik, a jelentkezésed automatikusan várólistára kerül!
           </p>
         </div>
 
@@ -127,7 +167,7 @@ export default function TrainingsPage() {
             <Loader2 className="w-10 h-10 animate-spin text-vik-blue-700 mb-3" />
             <p className="text-slate-600 font-medium">Edzés betöltése...</p>
           </div>
-        ) : filteredTrainings.length === 0 ? (
+        ) : sortedTrainings.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center max-w-lg mx-auto">
             <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-slate-800 mb-1">Nem található edzés</h3>
@@ -146,7 +186,7 @@ export default function TrainingsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTrainings.map((t) => (
+            {sortedTrainings.map((t) => (
               <TrainingCard key={t.id} training={t} onRefresh={fetchTrainings} />
             ))}
           </div>

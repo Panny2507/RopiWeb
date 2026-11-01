@@ -33,7 +33,7 @@ model Training {
   date            DateTime
   startTime       String
   endTime         String
-  maxParticipants Int
+  maxParticipants Int            @default(20)
   type            String         // GYAKORLÁS, MECCS, SZABAD_EDZÉS
   createdBy       Int
   creator         User           @relation("UserTrainings", fields: [createdBy], references: [id])
@@ -76,14 +76,25 @@ model CupTeamMember {
   teamId    Int
   team      CupTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   name      String
+  isVik     Boolean  @default(false)
+  isBme     Boolean  @default(false)
+  isFemale  Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model CupSchedule {
+  id        Int      @id @default(autoincrement())
+  fileName  String
+  fileData  String
+  mimeType  String?
+  updatedAt DateTime @updatedAt
 }
 
 model CupResult {
   id         Int      @id @default(autoincrement())
   cupEdition String
   year       Int
-  category   String   // FÉRFI, NŐI, VEGYES
+  category   String   // VEGYES
   placement  Int
   teamName   String
   notes      String?
