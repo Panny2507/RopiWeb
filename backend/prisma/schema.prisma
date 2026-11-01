@@ -1,0 +1,121 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
+  password       String
+  name           String
+  role           String         @default("USER") // GUEST, USER, ADMIN
+  neptunCode     String?
+  isActiveMember Boolean        @default(false)
+  position       String?        // röplabda pozíció (feladó, ütő, center, libero, átló)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  trainings      Training[]     @relation("UserTrainings")
+  registrations  Registration[]
+  auditLogs      AuditLog[]
+  captainOfTeams CupTeam[]       @relation("TeamCaptain")
+}
+
+model Training {
+  id              Int            @id @default(autoincrement())
+  title           String
+  description     String?
+  location        String         // BME, ÓBUDAI, STRAND
+  address         String
+  date            DateTime
+  startTime       String
+  endTime         String
+  maxParticipants Int            @default(20)
+  type            String         // GYAKORLÁS, MECCS, SZABAD_EDZÉS
+  createdBy       Int
+  creator         User           @relation("UserTrainings", fields: [createdBy], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  registrations   Registration[]
+}
+
+model Registration {
+  id         Int      @id @default(autoincrement())
+  trainingId Int
+  training   Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     String   // ACCEPTED, WAITLISTED
+  position   Int      // sorrend
+  createdAt  DateTime @default(now())
+
+  @@unique([trainingId, userId])
+}
+
+model CupTeam {
+  id            Int      @id @default(autoincrement())
+  teamName      String
+  captainName   String
+  captainEmail  String
+  captainUserId Int?
+  captain       User?    @relation("TeamCaptain", fields: [captainUserId], references: [id], onDelete: SetNull)
+  memberCount   Int      @default(0)
+  category      String   @default("VEGYES")
+  cupEdition    String   // e.g. 'IV. VRK 2026'
+  acceptedRules Boolean
+  status        String   @default("SUBMITTED") // SUBMITTED, CONFIRMED, REJECTED
+  createdAt     DateTime @default(now())
+  members       CupTeamMember[]
+}
+
+model CupTeamMember {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  team      CupTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name      String
+  isVik     Boolean  @default(false)
+  isBme     Boolean  @default(false)
+  isFemale  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model CupSchedule {
+  id        Int      @id @default(autoincrement())
+  fileName  String
+  fileData  String
+  mimeType  String?
+  updatedAt DateTime @updatedAt
+}
+
+model CupResult {
+  id         Int      @id @default(autoincrement())
+  cupEdition String
+  year       Int
+  category   String   // VEGYES
+  placement  Int
+  teamName   String
+  notes      String?
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  senderName  String
+  senderEmail String
+  subject     String
+  body        String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
