@@ -1,5 +1,5 @@
 # RopiWeb
-BME VIK Roplabda Korenek vibe code-olt weboldala
+BME VIK Roplabda Körének vibe code-olt weboldala, csak és kizárólag különböző AI-k promptolásával készült.
 A Projekt a BME VIK Szftverfejlesztés MI támogatással c. tárgy keretein belül készül.
 
 A projekt egy Next.js frontendből és egy
@@ -7,7 +7,7 @@ Express/Prisma alapú REST API backendből áll.
 
 ## Előfeltételek
 
-- Node.js `22.22.2` vagy újabb kompatibilis verzió (`24.15.0` vagy `26+`)
+- Node.js `22.22.2` vagy újabb kompatibilis verzió
 - npm `12.2.1`
 
 ## Telepítés
@@ -112,25 +112,3 @@ npm start
 A production frontend továbbra is a 3000-es, a backend pedig alapértelmezés
 szerint a 3001-es porton indul. A portok a `backend\.env` fájlban, illetve a
 frontend `package.json` scriptjeiben módosíthatók.
-
-## Hasznos parancsok
-
-### Backend
-
-```powershell
-npm run dev              # fejlesztői szerver automatikus újraindítással
-npm run build            # TypeScript fordítása a dist mappába
-npm start                # lefordított backend indítása
-npm run prisma:generate  # Prisma kliens generálása
-npm run prisma:push      # Prisma séma alkalmazása az adatbázisra
-npm run prisma:seed      # tesztadatok betöltése
-```
-
-### Frontend
-
-```powershell
-npm run dev    # Next.js fejlesztői szerver
-npm run build  # production build készítése
-npm start      # production build indítása
-npm run lint   # lint ellenőrzés
-```
