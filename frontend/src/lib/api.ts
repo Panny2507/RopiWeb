@@ -5,6 +5,7 @@ import {
   CupTeamRegistration,
   CupEditionResults,
   CupScheduleInfo,
+  CupRulesInfo,
   ContactMessage,
   AuditLog,
   CupTeamMember,
@@ -839,6 +840,89 @@ export const api = {
       } else {
         throw new Error('Jelenleg nem elérhető a kupa lebonyolítása');
       }
+    },
+
+    getRules: async (): Promise<CupRulesInfo> => {
+      try {
+        return await apiClient<CupRulesInfo>('/api/cup/rules', { requiresAuth: false });
+      } catch {
+        return { hasRules: false, fileName: null, updatedAt: null };
+      }
+    },
+
+    uploadRules: async (data: { fileName: string; fileData: string; mimeType?: string }): Promise<CupRulesInfo> => {
+      try {
+        const res = await apiClient<{ rules: CupRulesInfo }>('/api/cup/rules', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+        return res.rules;
+      } catch {
+        const rules: CupRulesInfo & { fileData: string } = {
+          hasRules: true,
+          fileName: data.fileName,
+          mimeType: data.mimeType || 'application/pdf',
+          updatedAt: new Date().toISOString(),
+          fileData: data.fileData,
+        };
+        setStored('ropiweb_data_cup_rules', rules);
+        return rules;
+      }
+    },
+
+    deleteRules: async (): Promise<void> => {
+      try {
+        await apiClient('/api/cup/rules', { method: 'DELETE' });
+      } catch {
+        // Fallback
+      }
+      setStored('ropiweb_data_cup_rules', { hasRules: false, fileName: null, updatedAt: null });
+    },
+
+    downloadRules: async (): Promise<void> => {
+      try {
+        const token = getToken();
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch(`${API_BASE_URL}/api/cup/rules/download`, { headers });
+        if (response.ok) {
+          const blob = await response.blob();
+          const disposition = response.headers.get('content-disposition');
+          let filename = 'kupa_szabalyzat.pdf';
+          if (disposition && disposition.indexOf('filename=') !== -1) {
+            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+            if (matches != null && matches[1]) filename = decodeURIComponent(matches[1].replace(/['"]/g, ''));
+          }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          return;
+        }
+      } catch {
+        // Fallback to local stored fileData
+      }
+
+      const stored = getStored<any>('ropiweb_data_cup_rules', { hasRules: false });
+      if (stored?.hasRules && stored.fileData) {
+        const byteCharacters = atob(stored.fileData);
+        const byteArray = Uint8Array.from(Array.from(byteCharacters, (char) => char.charCodeAt(0)));
+        const blob = new Blob([byteArray], { type: stored.mimeType || 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = stored.fileName || 'kupa_szabalyzat.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+      throw new Error('Jelenleg nem elérhető a kupa versenyszabályzata');
     },
   },
 

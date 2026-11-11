@@ -13,6 +13,7 @@ import {
   AlertCircle, 
   Award, 
   FileSpreadsheet,
+  FileText,
   Download,
   Plus,
   Trash2,
@@ -36,6 +37,7 @@ export default function RopikupaPage() {
   const [teams, setTeams] = useState<CupTeamRegistration[]>([]);
   const [results, setResults] = useState<CupEditionResults[]>([]);
   const [scheduleInfo, setScheduleInfo] = useState<CupScheduleInfo | null>(null);
+  const [rulesInfo, setRulesInfo] = useState<{ hasRules: boolean; fileName?: string | null }>({ hasRules: false });
   const [selectedRoundFilter, setSelectedRoundFilter] = useState<string>('Összes');
   const [loading, setLoading] = useState(true);
 
@@ -49,11 +51,11 @@ export default function RopikupaPage() {
 
   // Team members with the 3 checkboxes: isVik, isBme, isFemale
   const [members, setMembers] = useState<MemberFormItem[]>([
-    { name: '', isVik: true, isBme: true, isFemale: false },
-    { name: '', isVik: true, isBme: true, isFemale: true },
-    { name: '', isVik: false, isBme: true, isFemale: false },
-    { name: '', isVik: false, isBme: true, isFemale: true },
-    { name: '', isVik: true, isBme: true, isFemale: false },
+    { name: '', isVik: false, isBme: false, isFemale: false },
+    { name: '', isVik: false, isBme: false, isFemale: false },
+    { name: '', isVik: false, isBme: false, isFemale: false },
+    { name: '', isVik: false, isBme: false, isFemale: false },
+    { name: '', isVik: false, isBme: false, isFemale: false },
     { name: '', isVik: false, isBme: false, isFemale: false },
   ]);
 
@@ -78,14 +80,16 @@ export default function RopikupaPage() {
 
   const loadData = async () => {
     try {
-      const [teamsData, resultsData, sched] = await Promise.all([
+      const [teamsData, resultsData, sched, rules] = await Promise.all([
         api.cup.getTeams(),
         api.cup.getResults(),
         api.cup.getSchedule(),
+        api.cup.getRules(),
       ]);
       setTeams(teamsData);
       setResults(resultsData);
       setScheduleInfo(sched);
+      setRulesInfo(rules);
     } catch (err) {
       console.error('Hiba a Röpikupa adatok betöltésekor:', err);
     } finally {
@@ -105,12 +109,7 @@ export default function RopikupaPage() {
     setMembers((current) =>
       current.map((item, i) => {
         if (i !== index) return item;
-        const updated = { ...item, ...updates };
-        // If VIK is checked, BME should also be checked automatically
-        if (updates.isVik === true) {
-          updated.isBme = true;
-        }
-        return updated;
+        return { ...item, ...updates };
       })
     );
   };
@@ -192,11 +191,11 @@ export default function RopikupaPage() {
       setCaptainEmail('');
       setCategory('Casual');
       setMembers([
-        { name: '', isVik: true, isBme: true, isFemale: false },
-        { name: '', isVik: true, isBme: true, isFemale: true },
-        { name: '', isVik: false, isBme: true, isFemale: false },
-        { name: '', isVik: false, isBme: true, isFemale: true },
-        { name: '', isVik: true, isBme: true, isFemale: false },
+        { name: '', isVik: false, isBme: false, isFemale: false },
+        { name: '', isVik: false, isBme: false, isFemale: false },
+        { name: '', isVik: false, isBme: false, isFemale: false },
+        { name: '', isVik: false, isBme: false, isFemale: false },
+        { name: '', isVik: false, isBme: false, isFemale: false },
         { name: '', isVik: false, isBme: false, isFemale: false },
       ]);
       setRulesAccepted(false);
@@ -737,28 +736,28 @@ export default function RopikupaPage() {
                 )}
               </div>
 
-              {/* Tournament Highlights info box with schedule link */}
+              {/* Rules document under the registered teams */}
               <div className="bg-gradient-to-br from-vik-blue-800 to-vik-blue-900 text-white p-6 rounded-2xl shadow-sm space-y-3">
                 <div className="flex items-center gap-2 text-vik-gold-400 font-bold text-sm">
-                  <FileSpreadsheet className="w-5 h-5" />
-                  <span>Lebonyolítás táblázat</span>
+                  <FileText className="w-5 h-5" />
+                  <span>Kupa szabályzata</span>
                 </div>
-                {scheduleInfo?.hasSchedule ? (
+                {rulesInfo.hasRules ? (
                   <div>
                     <p className="text-xs text-blue-100 leading-relaxed mb-3">
-                      A bajnokság fordulójának részletes meccsbeosztása és csoportbeosztása letölthető az alábbi linken:
+                      A nevezés feltételei és a torna szabályai letölthetők az alábbi linken:
                     </p>
                     <button
-                      onClick={() => api.cup.downloadSchedule()}
+                      onClick={() => api.cup.downloadRules()}
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-vik-gold-500 hover:bg-vik-gold-400 text-slate-900 font-bold text-xs transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Lebonyolítás táblázat ITT</span>
+                      <span>Szabályzat letöltése</span>
                     </button>
                   </div>
                 ) : (
                   <p className="text-xs text-amber-200 italic leading-relaxed">
-                    Jelenleg nem elérhető a kupa lebonyolítása. Kérjük nézz vissza később!
+                    Jelenleg nem elérhető a kupa szabályzata. Kérjük nézz vissza később!
                   </p>
                 )}
               </div>

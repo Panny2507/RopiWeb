@@ -65,6 +65,13 @@ export interface CupScheduleInfo {
   updatedAt?: string | null;
 }
 
+export interface CupRulesInfo {
+  hasRules: boolean;
+  fileName?: string | null;
+  mimeType?: string | null;
+  updatedAt?: string | null;
+}
+
 export interface CupResultItem {
   placement: number;
   teamName: string;

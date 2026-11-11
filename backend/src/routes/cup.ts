@@ -316,4 +316,97 @@ router.delete('/schedule', authenticateToken, requireAdmin, async (req: Request,
   }
 });
 
+// GET /api/cup/rules - Aktuális kupa versenyszabályzat metaadatai
+router.get('/rules', async (_req: Request, res: Response) => {
+  try {
+    const rules = await prisma.cupRules.findFirst({ orderBy: { updatedAt: 'desc' } });
+    if (!rules) {
+      return res.status(200).json({ hasRules: false, fileName: null, updatedAt: null });
+    }
+    return res.status(200).json({
+      hasRules: true,
+      fileName: rules.fileName,
+      mimeType: rules.mimeType,
+      updatedAt: rules.updatedAt,
+    });
+  } catch (error) {
+    console.error('Versenyszabályzat lekérési hiba:', error);
+    return res.status(500).json({ error: 'Hiba történt a versenyszabályzat lekérése során' });
+  }
+});
+
+// GET /api/cup/rules/download - Aktuális kupa versenyszabályzat letöltése
+router.get('/rules/download', async (_req: Request, res: Response) => {
+  try {
+    const rules = await prisma.cupRules.findFirst({ orderBy: { updatedAt: 'desc' } });
+    if (!rules) {
+      return res.status(404).json({ error: 'Jelenleg nem elérhető a kupa versenyszabályzata' });
+    }
+    const fileBuffer = Buffer.from(rules.fileData, 'base64');
+    res.setHeader('Content-Type', rules.mimeType || 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(rules.fileName)}"`);
+    return res.send(fileBuffer);
+  } catch (error) {
+    console.error('Versenyszabályzat letöltési hiba:', error);
+    return res.status(500).json({ error: 'Hiba a versenyszabályzat letöltésekor' });
+  }
+});
+
+// POST /api/cup/rules - Új kupa versenyszabályzat feltöltése (ADMIN)
+router.post('/rules', authenticateToken, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { fileName, fileData, mimeType } = req.body;
+    if (!fileName || typeof fileName !== 'string' || !fileName.trim()) {
+      return res.status(400).json({ error: 'A fájlnév megadása kötelező' });
+    }
+    if (!fileData || typeof fileData !== 'string') {
+      return res.status(400).json({ error: 'A fájl tartalom (base64) megadása kötelező' });
+    }
+    if (!/\.pdf$/i.test(fileName.trim())) {
+      return res.status(400).json({ error: 'A szabályzat fájl formátuma csak .pdf lehet' });
+    }
+
+    await prisma.cupRules.deleteMany();
+    const created = await prisma.cupRules.create({
+      data: {
+        fileName: fileName.trim(),
+        fileData,
+        mimeType: mimeType || 'application/pdf',
+      },
+    });
+
+    await createAuditLog({
+      userId: req.user!.id,
+      action: 'CUP_RULES_UPLOAD',
+      details: `Kupa versenyszabályzat feltöltve: "${created.fileName}"`,
+      ipAddress: req.ip || req.socket.remoteAddress || null,
+    });
+
+    return res.status(201).json({
+      message: 'Versenyszabályzat sikeresen feltöltve!',
+      rules: { hasRules: true, fileName: created.fileName, mimeType: created.mimeType, updatedAt: created.updatedAt },
+    });
+  } catch (error) {
+    console.error('Versenyszabályzat feltöltési hiba:', error);
+    return res.status(500).json({ error: 'Hiba a versenyszabályzat mentésekor' });
+  }
+});
+
+// DELETE /api/cup/rules - Kupa versenyszabályzat törlése (ADMIN)
+router.delete('/rules', authenticateToken, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    await prisma.cupRules.deleteMany();
+    await createAuditLog({
+      userId: req.user!.id,
+      action: 'CUP_RULES_DELETE',
+      details: 'Kupa versenyszabályzat törölve',
+      ipAddress: req.ip || req.socket.remoteAddress || null,
+    });
+    return res.status(200).json({ message: 'Versenyszabályzat sikeresen törölve.', hasRules: false });
+  } catch (error) {
+    console.error('Versenyszabályzat törlési hiba:', error);
+    return res.status(500).json({ error: 'Hiba a versenyszabályzat törlésekor' });
+  }
+});
+
 export default router;

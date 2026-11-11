@@ -10,7 +10,8 @@ import {
   AuditLog, 
   TrainingType, 
   UserRole,
-  CupScheduleInfo
+  CupScheduleInfo,
+  CupRulesInfo
 } from '@/types';
 import { api } from '@/lib/api';
 import { 
@@ -46,6 +47,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [scheduleInfo, setScheduleInfo] = useState<CupScheduleInfo | null>(null);
+  const [rulesInfo, setRulesInfo] = useState<CupRulesInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Notifications
@@ -70,22 +72,25 @@ export default function AdminPage() {
   // Drag and drop state for tournament schedule
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingSchedule, setUploadingSchedule] = useState(false);
+  const [uploadingRules, setUploadingRules] = useState(false);
 
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const [tList, mList, uList, aList, sched] = await Promise.all([
+      const [tList, mList, uList, aList, sched, rules] = await Promise.all([
         api.trainings.getAll(),
         api.contact.getMessages(),
         api.users.getAll(),
         api.auditLogs.getAll(),
         api.cup.getSchedule(),
+        api.cup.getRules(),
       ]);
       setTrainings(tList);
       setMessages(mList);
       setUsers(uList);
       setAuditLogs(aList);
       setScheduleInfo(sched);
+      setRulesInfo(rules);
     } catch (err: any) {
       setErrorMsg('Hiba történt az admin adatok betöltésekor.');
     } finally {
@@ -328,6 +333,53 @@ export default function AdminPage() {
     } catch (err: any) {
       notifyError(err.message || 'Hiba a fájlfeltöltés előkészítésekor.');
       setUploadingSchedule(false);
+    }
+  };
+
+  const handleRulesUpload = async (file: File) => {
+    if (!/\.pdf$/i.test(file.name)) {
+      notifyError('A szabályzat fájl formátuma csak .pdf lehet.');
+      return;
+    }
+
+    setUploadingRules(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64Data = (reader.result as string).split(',')[1] || reader.result as string;
+          const updated = await api.cup.uploadRules({
+            fileName: file.name,
+            fileData: base64Data,
+            mimeType: file.type || 'application/pdf',
+          });
+          setRulesInfo(updated);
+          notifySuccess(`A(z) "${file.name}" szabályzat sikeresen feltöltve!`);
+        } catch (err: any) {
+          notifyError(err.message || 'Hiba történt a szabályzat feltöltésekor.');
+        } finally {
+          setUploadingRules(false);
+        }
+      };
+      reader.onerror = () => {
+        notifyError('Hiba történt a szabályzat olvasásakor.');
+        setUploadingRules(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      notifyError(err.message || 'Hiba a szabályzat feltöltésekor.');
+      setUploadingRules(false);
+    }
+  };
+
+  const handleDeleteRules = async () => {
+    if (!confirm('Biztosan törölni szeretnéd a kupa szabályzatát?')) return;
+    try {
+      await api.cup.deleteRules();
+      setRulesInfo({ hasRules: false, fileName: null, updatedAt: null });
+      notifySuccess('A kupa szabályzata sikeresen törölve.');
+    } catch {
+      notifyError('Hiba a szabályzat törlésekor.');
     }
   };
 
@@ -793,7 +845,55 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* TAB 3: ÜZENETEK */}
+              {/* TAB 3: KUPA SZABÁLYZAT */}
+              {activeTab === 'cup' && (
+                <div className="max-w-4xl mx-auto mt-6 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                  <h2 className="text-xl font-bold text-slate-900 mb-1">Kupa versenyszabályzat PDF</h2>
+                  <p className="text-sm text-slate-500 mb-5">
+                    Ez a PDF jelenik meg a nevezett csapatok alatt a Röpikupa oldalon.
+                  </p>
+                  {rulesInfo?.hasRules ? (
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                      <span className="font-bold text-sm text-slate-900">{rulesInfo.fileName}</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => api.cup.downloadRules()}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 font-semibold text-xs"
+                        >
+                          <Download className="w-4 h-4" /> Teszt letöltés
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDeleteRules}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 text-white font-semibold text-xs"
+                        >
+                          <Trash2 className="w-4 h-4" /> Törlés
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-900 mb-5">
+                      Nincs feltöltött szabályzat PDF.
+                    </p>
+                  )}
+                  <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-vik-blue-700 hover:bg-vik-blue-800 text-white font-bold text-sm cursor-pointer">
+                    {uploadingRules ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                    <span>Szabályzat PDF kiválasztása</span>
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      className="hidden"
+                      disabled={uploadingRules}
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) handleRulesUpload(e.target.files[0]);
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {/* TAB 4: ÜZENETEK */}
               {activeTab === 'messages' && (
                 <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                   <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
