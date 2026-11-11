@@ -134,3 +134,25 @@ npm run build  # production build készítése
 npm start      # production build indítása
 npm run lint   # lint ellenőrzés
 ```
+
+## Tesztelés
+
+A backend automatizált tesztjei Vitest + Supertest alapúak, és egy külön,
+eldobható teszt-adatbázist használnak (a fejlesztői `dev.db` érintetlen marad).
+
+```powershell
+cd backend
+npm test
+```
+
+Az elfogadási feltételek és a tesztek megfeleltetése, a kötelező esetek
+lefedettsége és a hibás → javított regressziós bizonyíték a
+[`docs/TESZTELES.md`](docs/TESZTELES.md) dokumentumban található. A tesztfutások
+elmentett kimenetei a `docs/evidence/` mappában vannak.
+
+## Az MI használatának dokumentálása
+
+A fejlesztés során használt MI-eszközöket, a három érdemi döntési esetet (azok
+indoklásával és ellenőrzésével), valamint a projekt MI-támogató elemeit a
+[`docs/MI_HASZNALAT.md`](docs/MI_HASZNALAT.md) és az
+[`AGENTS.md`](AGENTS.md) dokumentálja.

@@ -147,3 +147,7 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Teszt adatbázis (Vitest generálja minden futáskor)
+backend/prisma/test.db
+backend/prisma/test.db-journal

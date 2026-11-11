@@ -1,0 +1,35 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/progBME/ropiweb/RopiWeb/backend[39m
+
+
+
+
+ [31m❯[39m tests/registrations.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m6 skipped[39m[2m)[22m[33m 824[2mms[22m[39m
+[31m   [31m×[31m DELETE /api/registrations/:trainingId (lemondás + előreléptetés)[2m > [22mACCEPTED lemondásakor a legkorábbi várólistás lép elő (FIFO regresszió)[33m 823[2mms[22m[31m[39m
+[31m     → expected 'w2@test.hu' to be 'w1@test.hu' // Object.is equality[39m
+ [2m[90m↓[39m[22m tests/trainings.test.ts [2m([22m[2m4 tests[22m[2m | [22m[33m4 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/authorization.test.ts [2m([22m[2m4 tests[22m[2m | [22m[33m4 skipped[39m[2m)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/registrations.test.ts[2m > [22mDELETE /api/registrations/:trainingId (lemondás + előreléptetés)[2m > [22mACCEPTED lemondásakor a legkorábbi várólistás lép elő (FIFO regresszió)
+[31m[1mAssertionError[22m: expected 'w2@test.hu' to be 'w1@test.hu' // Object.is equality[39m
+
+Expected: [32m"w[7m1[27m@test.hu"[39m
+Received: [31m"w[7m2[27m@test.hu"[39m
+
+[36m [2m❯[22m tests/registrations.test.ts:[2m153:42[22m[39m
+    [90m151| [39m    [34mexpect[39m(del[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m152| [39m    [90m// A LEGKORÁBBAN jelentkezett várólistásnak (wait1) kell előrelépn[39m…
+    [90m153| [39m    [34mexpect[39m(del[33m.[39mbody[33m.[39mpromotedUser[33m?.[39memail)[33m.[39m[34mtoBe[39m([32m'w1@test.hu'[39m)[33m;[39m
+    [90m   | [39m                                         [31m^[39m
+    [90m154| [39m
+    [90m155| [39m    [90m// Ellenőrizzük az adatbázis végállapotát is[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[33m2 skipped[39m[90m (3)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m14 skipped[39m[90m (15)[39m
+[2m   Start at [22m 10:41:46
+[2m   Duration [22m 8.84s[2m (transform 244ms, setup 15ms, collect 2.19s, tests 824ms, environment 1ms, prepare 466ms)[22m
+
