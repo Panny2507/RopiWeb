@@ -41,12 +41,13 @@ export default function TrainingsPage() {
   const filteredTrainings = trainings.filter((training) => {
     const loc = `${training.location} ${training.title}`.toLowerCase();
 
-    // Filter tab conditions according to user requirements:
-    // - BME szűrő: strandröplabda, bercsényi, kármán, sportközpont, sporttelep, bme
-    // - Óbudai: Doberdó úti Kollégium tornaterem, óbudai
-    // - Strand: BME sporttelep, strand
-    // - Bercsényi: bercsényi
-    // - Kármán: kármán
+    // Szűrő logika: includes() alapú, rugalmas stringmatch.
+    // A location és title mezőt egybefűzve vizsgálja (kisbetűre normalizálva),
+    // így az adatbázisban tárolt helyszínnév bármely részleges egyezése elég.
+    // - BME szűrő: lefedi a BME campus összes termét (bercsényi, kármán, sportközpont, sporttelep, strand is)
+    // - Óbudai: Doberdó úti Kollégium / óbudai kulcsszavak
+    // - Strand: strand / sporttelep kulcsszavak
+    // - Bercsényi / Kármán: az adott helyszín neve (ékezetes és ékezet nélküli formában)
     let matchesTab = true;
     if (selectedFilter === 'BME') {
       matchesTab =

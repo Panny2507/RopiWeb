@@ -8,8 +8,11 @@ döntést és annak szakmai indokát, végül az ellenőrzés bizonyítékát.
 
 ## Használt MI-eszközök és projekt-szintű konfiguráció
 
-- **Kiro** (agentic IDE) — a tesztkörnyezet felállítása, tesztek írása, a
-  regressziós hibademó és a dokumentáció.
+- **Google Antigravity (AGY)** — Claude Opus 4.6 / Gemini Flash modellek,
+  agentic mód, párhuzamos subagent-architektúra — architektúra, implementáció
+  és UI-iteráció fázisokban.
+- **Kiro** (agentic IDE) — tesztstratégia, tesztkörnyezet felállítása, tesztek
+  írása, regressziós hibademó.
 - Projekt-szintű MI-támogató elemek:
   - [`AGENTS.md`](../AGENTS.md) — ügynök-útmutató: parancsok, konvenciók,
     tesztelési és jogosultsági szabályok, tiltások.
@@ -83,41 +86,49 @@ Konfiguráció: `backend/vitest.config.ts`, `backend/tests/setup.ts`,
 
 ---
 
-## 3. döntési eset — Tesztelés / regressziós hibademó
+## 3. döntési eset — Implementáció / szerepkör-validáció módja
 
-**Probléma.** Igazolni kell egy teszttel, hogy ismert hibás változaton elbukik,
-a javítotton átmegy. Kellett egy olyan, üzletileg lényeges szabály, ahol a hiba
-reális és egyértelmű.
+**Probléma.** Az admin a felhasználók szerepkörét módosíthatja
+(`PATCH /api/admin/users/:id`). A bejövő `role` értéket ellenőrizni kell, mert
+csak három érvényes érték létezik: `GUEST`, `USER`, `ADMIN`. A kérdés: hogyan
+ellenőrizzük az engedélyezett értékeket úgy, hogy a kód olvasható és a jövőbeli
+bővítésnél (`prisma:push` utáni új szerepkör) könnyen karbantartható maradjon?
 
 **Eszköz.** Kiro.
 
-**Átadott kontextus és utasítás.** Átadtam a `registrations.ts` lemondás-ágát,
-ahol ACCEPTED lemondásakor a várólistáról `orderBy: { position: 'asc' }`
-szerint lép elő a következő. Utasítás: javasoljon egy reális, szándékosan
-behelyezett hibát, amely a tisztességes (FIFO) sorrendet sérti, és írjon rá
-tesztet, amely a hibát elkapja.
+**Átadott kontextus és utasítás.** Átadtam az `admin.ts` szerepkör-módosító
+ágát és a Prisma `User.role` mezőt (string, alapértelmezett `USER`). Utasítás:
+javasoljon megbízható, olvasható validációt az engedélyezett szerepkörökre, és
+hibás érték esetén adjon beszédes HTTP 400 választ.
 
-**A javaslat lényege.** Az MI azt javasolta, hogy a rendezést fordítsuk meg
-(`'asc'` → `'desc'`), így a legkésőbb jelentkezett várólistás lépne elő, ami
-sérti a FIFO elvet. A teszt három felhasználót állít be (1 ACCEPTED + 2
-WAITLISTED), az ACCEPTED lemond, és azt várja, hogy az ELSŐ várólistás lépjen elő.
+**A javaslat lényege.** Két megközelítés merült fel: (a) explicit engedélyezett
+lista + tömbtagság-ellenőrzés `includes()`-szel
+(`const validRoles = ['GUEST','USER','ADMIN']; validRoles.includes(role)`),
+illetve (b) hosszú `if/else if` láncú összehasonlítás minden szerepkörre. Az MI
+az `includes()`-es, listaalapú megoldást javasolta.
 
-**Saját döntés és indok.** A javaslatot **elfogadtam**, mert a hiba életszerű
-(elírt rendezési irány), a hatása pedig közvetlenül igazságtalan sorrendet okoz,
-így jól demonstrálja a teszt értékét. A hibás és a javított változatot is
-megőriztem, és mindkét futás kimenetét elmentettem. A hibás részletet a
-dokumentáció egyértelműen szándékosnak jelöli — **ez nem tényleges fejlesztési
-hiba**.
+**Saját döntés és indok.** A javaslatot **elfogadtam**. Az `includes()`-es
+változat mellett szól, hogy az engedélyezett értékek egyetlen helyen, egy
+listában vannak felsorolva: új szerepkör bevezetésekor elég a listát bővíteni, a
+feltétel változatlan marad, és a hibaüzenet is a listából generálódik
+(`validRoles.join(', ')`), így sosem csúszik szét a kód és a felhasználónak
+mutatott érvényes értékek halmaza. Ez kevésbé törékeny és rövidebb, mint a
+kézi `if`-láncok, amelyeknél könnyű egy ágat kifelejteni.
 
 **Ellenőrzés (bizonyíték).**
-- Hibás változat elbukik:
-  [`evidence/regression-FAIL-buggy.txt`](./evidence/regression-FAIL-buggy.txt)
-  (`expected 'w2@test.hu' to be 'w1@test.hu'`).
-- Javított változat átmegy:
-  [`evidence/regression-PASS-fixed.txt`](./evidence/regression-PASS-fixed.txt)
-  (1 passed).
-- A szabály és a két változat leírása: [`docs/TESZTELES.md`](./TESZTELES.md)
-  („Regressziós eset” szakasz).
+- A megvalósítás az `backend/src/routes/admin.ts`-ben:
+  `const validRoles = ['GUEST', 'USER', 'ADMIN']; if (!validRoles.includes(role)) { ...400... }`.
+- A jogosultság- és szerepkör-kezelést a jogosultsági tesztek fedik
+  (`tests/authorization.test.ts`): a 200/403/401 válaszok, és az ADMIN által
+  elérhető `GET /api/admin/users` végpont. A teljes zöld futás:
+  [`evidence/full-suite-PASS.txt`](./evidence/full-suite-PASS.txt).
+
+> Megjegyzés: a hibás → javított változat regressziós bizonyítékát (a FIFO
+> várólista-előreléptetés tesztje) a tesztelési követelmény külön tárgyalja, lásd
+> [`docs/TESZTELES.md`](./TESZTELES.md) „Regressziós eset (EF-7)” szakasz és a
+> `evidence/regression-FAIL-buggy.txt` / `evidence/regression-PASS-fixed.txt`
+> fájlok. Ezt nem MI-döntési esetként, hanem a tesztek hibafogó képességének
+> igazolásaként dokumentáljuk.
 
 ---
 
