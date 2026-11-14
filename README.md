@@ -1,5 +1,5 @@
 # RopiWeb
-BME VIK Roplabda Korenek vibe code-olt weboldala
+BME VIK Roplabda Körének vibe code-olt weboldala, csak és kizárólag különböző AI-k promptolásával készült.
 A Projekt a BME VIK Szftverfejlesztés MI támogatással c. tárgy keretein belül készül.
 
 A projekt egy Next.js frontendből és egy
@@ -7,7 +7,7 @@ Express/Prisma alapú REST API backendből áll.
 
 ## Előfeltételek
 
-- Node.js `22.22.2` vagy újabb kompatibilis verzió (`24.15.0` vagy `26+`)
+- Node.js `22.22.2` vagy újabb kompatibilis verzió
 - npm `12.2.1`
 
 ## Telepítés
