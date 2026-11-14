@@ -1,0 +1,9 @@
+{
+  "name": "ropiweb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BME VIK Röplabda Kör webalkalmazás (backend + frontend) indító scriptjei",
+  "scripts": {
+    "start:all": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-project.ps1"
+  }
+}

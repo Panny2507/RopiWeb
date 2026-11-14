@@ -89,6 +89,22 @@ Az alkalmazás ezután a következő címeken érhető el:
 A frontend az `/api` kéréseket automatikusan a `http://localhost:3001` backend
 felé továbbítja.
 
+## Teljes előkészítés, build és indítás egy paranccsal
+
+Windows PowerShellből a teljes folyamatot egy script végzi el:
+
+```powershell
+npm run start:all
+```
+
+A script szükség esetén telepíti a függőségeket, generálja a Prisma klienst,
+alkalmazza az adatbázis-sémát, betölti a seed adatokat, elkészíti a backend és
+frontend production buildjét, majd külön konzolablakokban elindítja a két
+szervert. A seedelés a `backend\prisma\dev.db` korábbi adatait törli és új
+tesztadatokat hoz létre.
+
+Az indítás előtt a 3000-es és 3001-es portnak szabadnak kell lennie.
+
 ## Build és futtatás production módban
 
 Mindkét alkalmazást külön kell buildelni.
