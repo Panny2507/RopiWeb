@@ -38,11 +38,13 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Egyszerű kérés-naplózás fejlesztési környezetben
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
-});
+// Egyszerű kérés-naplózás fejlesztési környezetben (teszt módban kikapcsolva)
+if (process.env.NODE_ENV !== 'test') {
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+    next();
+  });
+}
 
 // Alap healthcheck végpont
 app.get('/api/health', (_req: Request, res: Response) => {

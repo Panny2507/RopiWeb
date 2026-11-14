@@ -5,6 +5,7 @@ import {
   CupTeamRegistration,
   CupEditionResults,
   CupScheduleInfo,
+  CupRulesInfo,
   ContactMessage,
   AuditLog,
   CupTeamMember,
@@ -125,6 +126,51 @@ function normalizeTraining(training: TrainingApiResponse): Training {
     id: String(training.id),
     participants,
     waitlist,
+  };
+}
+
+// A backend validációja (validateTraining) a date mellett külön address,
+// startTime és endTime mezőket is megkövetel, az admin űrlap viszont csak egy
+// datetime-local értéket (date) és egy location mezőt küld. Itt származtatjuk a
+// hiányzó mezőket, különben a POST/PUT 400-at ad, és az edzés nem kerül az
+// adatbázisba (csak a localStorage fallbackba).
+function toTrainingPayload(
+  training: Partial<Omit<Training, 'id' | 'participants' | 'waitlist'>>
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = { ...training };
+
+  if (training.date) {
+    const start = new Date(training.date);
+    if (!isNaN(start.getTime())) {
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const startTime = `${pad(start.getHours())}:${pad(start.getMinutes())}`;
+      // Záró időpont: alapértelmezetten +2 óra, mert az űrlapon nincs külön mező.
+      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+      const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+      payload.startTime = startTime;
+      payload.endTime = endTime;
+    }
+  }
+
+  // A backend külön address mezőt vár; az űrlapon ezt a helyszín (location) fedi.
+  if (training.location && !('address' in training && (training as any).address)) {
+    payload.address = training.location;
+  }
+
+  return payload;
+}
+
+// A backend a kupa csapatokat cupEdition / acceptedRules mezőnevekkel adja
+// vissza, a frontend viszont edition / rulesAccepted néven használja őket
+// (szűrés, megjelenítés). Itt egységesítjük a frontend által várt alakra.
+function normalizeCupTeam(team: any): CupTeamRegistration {
+  return {
+    ...team,
+    id: team.id !== undefined && team.id !== null ? String(team.id) : team.id,
+    edition: team.edition ?? team.cupEdition,
+    rulesAccepted: team.rulesAccepted ?? team.acceptedRules ?? false,
+    playerCount: team.playerCount ?? team.memberCount ?? (Array.isArray(team.members) ? team.members.length : 0),
+    members: Array.isArray(team.members) ? team.members : [],
   };
 }
 
@@ -566,10 +612,11 @@ export const api = {
 
     create: async (training: Omit<Training, 'id' | 'participants' | 'waitlist'>): Promise<Training> => {
       try {
-        return await apiClient<Training>('/api/trainings', {
+        const response = await apiClient<{ training: TrainingApiResponse }>('/api/trainings', {
           method: 'POST',
-          body: JSON.stringify(training),
+          body: JSON.stringify(toTrainingPayload(training)),
         });
+        return normalizeTraining(response.training);
       } catch (err: any) {
         if (err.status === 400 || err.status === 403) throw err;
         const list = getStored<Training[]>(STORAGE_KEYS.TRAININGS, INITIAL_TRAININGS);
@@ -586,10 +633,11 @@ export const api = {
 
     update: async (id: string, updates: Partial<Training>): Promise<Training> => {
       try {
-        return await apiClient<Training>(`/api/trainings/${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify(updates),
+        const response = await apiClient<{ training: TrainingApiResponse }>(`/api/trainings/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(toTrainingPayload(updates)),
         });
+        return normalizeTraining(response.training);
       } catch {
         const list = getStored<Training[]>(STORAGE_KEYS.TRAININGS, INITIAL_TRAININGS);
         const updated = list.map((t) => (t.id === id ? { ...t, ...updates } : t));
@@ -686,7 +734,8 @@ export const api = {
   cup: {
     getTeams: async (): Promise<CupTeamRegistration[]> => {
       try {
-        return await apiClient<CupTeamRegistration[]>('/api/cup/teams', { requiresAuth: false });
+        const teams = await apiClient<any[]>('/api/cup/teams', { requiresAuth: false });
+        return teams.map(normalizeCupTeam);
       } catch {
         return getStored<CupTeamRegistration[]>(STORAGE_KEYS.CUP_TEAMS, INITIAL_CUP_TEAMS);
       }
@@ -694,14 +743,22 @@ export const api = {
 
     registerTeam: async (data: CupTeamRegistration): Promise<CupTeamRegistration> => {
       try {
-        const response = await apiClient<{ team: CupTeamRegistration }>('/api/cup/teams', {
+        // A backend a cupEdition / acceptedRules mezőneveket várja, a frontend
+        // viszont edition / rulesAccepted néven tárolja. Itt képezzük le őket,
+        // különben a POST 400-at ad, és a nevezés nem kerül az adatbázisba.
+        const response = await apiClient<{ team: any }>('/api/cup/teams', {
           method: 'POST',
           body: JSON.stringify({
-            ...data,
+            teamName: data.teamName,
+            captainName: data.captainName,
+            captainEmail: data.captainEmail,
             category: data.category,
+            cupEdition: data.edition,
+            acceptedRules: data.rulesAccepted,
+            members: data.members,
           }),
         });
-        return response.team;
+        return normalizeCupTeam(response.team);
       } catch {
         const teams = getStored<CupTeamRegistration[]>(STORAGE_KEYS.CUP_TEAMS, INITIAL_CUP_TEAMS);
         const newTeam: CupTeamRegistration = {
@@ -839,6 +896,89 @@ export const api = {
       } else {
         throw new Error('Jelenleg nem elérhető a kupa lebonyolítása');
       }
+    },
+
+    getRules: async (): Promise<CupRulesInfo> => {
+      try {
+        return await apiClient<CupRulesInfo>('/api/cup/rules', { requiresAuth: false });
+      } catch {
+        return { hasRules: false, fileName: null, updatedAt: null };
+      }
+    },
+
+    uploadRules: async (data: { fileName: string; fileData: string; mimeType?: string }): Promise<CupRulesInfo> => {
+      try {
+        const res = await apiClient<{ rules: CupRulesInfo }>('/api/cup/rules', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+        return res.rules;
+      } catch {
+        const rules: CupRulesInfo & { fileData: string } = {
+          hasRules: true,
+          fileName: data.fileName,
+          mimeType: data.mimeType || 'application/pdf',
+          updatedAt: new Date().toISOString(),
+          fileData: data.fileData,
+        };
+        setStored('ropiweb_data_cup_rules', rules);
+        return rules;
+      }
+    },
+
+    deleteRules: async (): Promise<void> => {
+      try {
+        await apiClient('/api/cup/rules', { method: 'DELETE' });
+      } catch {
+        // Fallback
+      }
+      setStored('ropiweb_data_cup_rules', { hasRules: false, fileName: null, updatedAt: null });
+    },
+
+    downloadRules: async (): Promise<void> => {
+      try {
+        const token = getToken();
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch(`${API_BASE_URL}/api/cup/rules/download`, { headers });
+        if (response.ok) {
+          const blob = await response.blob();
+          const disposition = response.headers.get('content-disposition');
+          let filename = 'kupa_szabalyzat.pdf';
+          if (disposition && disposition.indexOf('filename=') !== -1) {
+            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+            if (matches != null && matches[1]) filename = decodeURIComponent(matches[1].replace(/['"]/g, ''));
+          }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          return;
+        }
+      } catch {
+        // Fallback to local stored fileData
+      }
+
+      const stored = getStored<any>('ropiweb_data_cup_rules', { hasRules: false });
+      if (stored?.hasRules && stored.fileData) {
+        const byteCharacters = atob(stored.fileData);
+        const byteArray = Uint8Array.from(Array.from(byteCharacters, (char) => char.charCodeAt(0)));
+        const blob = new Blob([byteArray], { type: stored.mimeType || 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = stored.fileName || 'kupa_szabalyzat.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+      throw new Error('Jelenleg nem elérhető a kupa versenyszabályzata');
     },
   },
 

@@ -3,6 +3,17 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+function futureDate(daysFromToday: number, time: string): Date {
+  const date = new Date();
+  const [hours, minutes] = time.split(':').map(Number);
+
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + daysFromToday);
+  date.setHours(hours, minutes, 0, 0);
+
+  return date;
+}
+
 async function main() {
   console.log('🌱 Adatbázis magvetése (seeding) megkezdődött...');
 
@@ -92,7 +103,7 @@ async function main() {
       description: 'Technikai és taktikai játék a hét indításaként.',
       location: 'BME Sportközpont',
       address: '1111 Budapest, Bertalan Lajos u. 4-6.',
-      date: new Date('2026-11-02T18:00:00Z'),
+      date: futureDate(1, '18:00'),
       startTime: '18:00',
       endTime: '20:00',
       maxParticipants: 20,
@@ -107,7 +118,7 @@ async function main() {
       description: 'Pörgős meccsezés a Doberdó úti Kollégium tornatermében.',
       location: 'Óbudai Egyetem - Doberdó úti Kollégium tornaterem',
       address: '1034 Budapest, Doberdó út 6.',
-      date: new Date('2026-11-03T17:00:00Z'),
+      date: futureDate(2, '17:00'),
       startTime: '17:00',
       endTime: '19:00',
       maxParticipants: 20,
@@ -122,7 +133,7 @@ async function main() {
       description: 'Közös játék a Bercsényi Kollégium tornatermében.',
       location: 'Bercsényi Kollégium tornaterem',
       address: '1117 Budapest, Bercsényi u. 28-30.',
-      date: new Date('2026-11-04T19:00:00Z'),
+      date: futureDate(3, '19:00'),
       startTime: '19:00',
       endTime: '21:00',
       maxParticipants: 20,
@@ -137,7 +148,7 @@ async function main() {
       description: 'Edzés és jókedv a Kármán Kollégium tornatermében.',
       location: 'Kármán Tódor Kollégium tornaterem',
       address: '1111 Budapest, Kruspér u. 2-4.',
-      date: new Date('2026-11-05T18:30:00Z'),
+      date: futureDate(4, '18:30'),
       startTime: '18:30',
       endTime: '20:30',
       maxParticipants: 20,
@@ -152,7 +163,7 @@ async function main() {
       description: 'Strandröplabda edzés a BME Sporttelepen, homokon.',
       location: 'BME Sporttelep - Strandröplabda pálya',
       address: '1111 Budapest, Bogdánfy Ödön u. 10.',
-      date: new Date('2026-11-07T10:00:00Z'),
+      date: futureDate(6, '10:00'),
       startTime: '10:00',
       endTime: '12:00',
       maxParticipants: 20,
@@ -167,7 +178,7 @@ async function main() {
       description: 'Kupára felkészítő meccsek a Sportközpontban.',
       location: 'BME Sportközpont',
       address: '1111 Budapest, Bertalan Lajos u. 4-6.',
-      date: new Date('2026-11-08T15:00:00Z'),
+      date: futureDate(7, '15:00'),
       startTime: '15:00',
       endTime: '18:00',
       maxParticipants: 20,

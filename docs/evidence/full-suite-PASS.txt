@@ -1,0 +1,31 @@
+
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/progBME/ropiweb/RopiWeb/backend[39m
+
+
+
+
+ [32m✓[39m tests/registrations.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 3946[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/registrations (edzés-jelentkezés)[2m > [22mszabad helyre jelentkezve ACCEPTED státuszt ad (201) [33m520[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/registrations (edzés-jelentkezés)[2m > [22maz utolsó szabad hely ACCEPTED, a következő jelentkező WAITLISTED [33m748[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/registrations (edzés-jelentkezés)[2m > [22mtoken nélkül a jelentkezés elutasított (401) [33m325[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/registrations (edzés-jelentkezés)[2m > [22mnem létező edzésre jelentkezve 404 [33m338[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/registrations (edzés-jelentkezés)[2m > [22mugyanarra az edzésre kétszer jelentkezve 409 Conflict (EF-4) [33m473[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/registrations/:trainingId (lemondás + előreléptetés)[2m > [22mACCEPTED lemondásakor a legkorábbi várólistás lép elő (FIFO regresszió) [33m1015[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/registrations/:trainingId (lemondás + előreléptetés)[2m > [22mnem létező jelentkezés lemondása 404 [33m507[2mms[22m[39m
+ [32m✓[39m tests/trainings.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1624[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/trainings (EF-3 edzés létrehozás)[2m > [22mADMIN érvényes jövőbeli edzést hoz létre (201) [33m461[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/trainings (EF-3 edzés létrehozás)[2m > [22mmúltbeli dátummal 400 (a dátumnak a jövőben kell lennie) [33m472[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/trainings (EF-3 edzés létrehozás)[2m > [22mhiányzó kötelező mező (title) esetén 400 [33m339[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/trainings (EF-3 edzés létrehozás)[2m > [22mUSER szerepkörrel az edzés létrehozása tiltott (403) [33m334[2mms[22m[39m
+ [32m✓[39m tests/authorization.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1361[2mms[22m[39m
+   [33m[2m✓[22m[39m EF-5 jogosultság-ellenőrzés az admin végpontokon[2m > [22mUSER szerepkör az admin felhasználólistát 403-mal kapja [33m378[2mms[22m[39m
+   [33m[2m✓[22m[39m EF-5 jogosultság-ellenőrzés az admin végpontokon[2m > [22mtoken nélkül 401 [33m326[2mms[22m[39m
+   [33m[2m✓[22m[39m EF-5 jogosultság-ellenőrzés az admin végpontokon[2m > [22ma jogosulatlan hozzáférés UNAUTHORIZED_ACCESS audit bejegyzést készít [33m346[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[32m15 passed[39m[22m[90m (15)[39m
+[2m   Start at [22m 10:43:02
+[2m   Duration [22m 13.26s[2m (transform 261ms, setup 15ms, collect 1.68s, tests 6.93s, environment 1ms, prepare 368ms)[22m
+

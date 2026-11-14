@@ -90,6 +90,14 @@ model CupSchedule {
   updatedAt DateTime @updatedAt
 }
 
+model CupRules {
+  id        Int      @id @default(autoincrement())
+  fileName  String
+  fileData  String
+  mimeType  String?
+  updatedAt DateTime @updatedAt
+}
+
 model CupResult {
   id         Int      @id @default(autoincrement())
   cupEdition String

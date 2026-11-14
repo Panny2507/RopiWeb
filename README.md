@@ -89,6 +89,22 @@ Az alkalmazás ezután a következő címeken érhető el:
 A frontend az `/api` kéréseket automatikusan a `http://localhost:3001` backend
 felé továbbítja.
 
+## Teljes előkészítés, build és indítás egy paranccsal
+
+Windows PowerShellből a teljes folyamatot egy script végzi el:
+
+```powershell
+npm run start:all
+```
+
+A script szükség esetén telepíti a függőségeket, generálja a Prisma klienst,
+alkalmazza az adatbázis-sémát, betölti a seed adatokat, elkészíti a backend és
+frontend production buildjét, majd külön konzolablakokban elindítja a két
+szervert. A seedelés a `backend\prisma\dev.db` korábbi adatait törli és új
+tesztadatokat hoz létre.
+
+Az indítás előtt a 3000-es és 3001-es portnak szabadnak kell lennie.
+
 ## Build és futtatás production módban
 
 Mindkét alkalmazást külön kell buildelni.
@@ -112,3 +128,47 @@ npm start
 A production frontend továbbra is a 3000-es, a backend pedig alapértelmezés
 szerint a 3001-es porton indul. A portok a `backend\.env` fájlban, illetve a
 frontend `package.json` scriptjeiben módosíthatók.
+
+## Hasznos parancsok
+
+### Backend
+
+```powershell
+npm run dev              # fejlesztői szerver automatikus újraindítással
+npm run build            # TypeScript fordítása a dist mappába
+npm start                # lefordított backend indítása
+npm run prisma:generate  # Prisma kliens generálása
+npm run prisma:push      # Prisma séma alkalmazása az adatbázisra
+npm run prisma:seed      # tesztadatok betöltése
+```
+
+### Frontend
+
+```powershell
+npm run dev    # Next.js fejlesztői szerver
+npm run build  # production build készítése
+npm start      # production build indítása
+npm run lint   # lint ellenőrzés
+```
+
+## Tesztelés
+
+A backend automatizált tesztjei Vitest + Supertest alapúak, és egy külön,
+eldobható teszt-adatbázist használnak (a fejlesztői `dev.db` érintetlen marad).
+
+```powershell
+cd backend
+npm test
+```
+
+Az elfogadási feltételek és a tesztek megfeleltetése, a kötelező esetek
+lefedettsége és a hibás → javított regressziós bizonyíték a
+[`docs/TESZTELES.md`](docs/TESZTELES.md) dokumentumban található. A tesztfutások
+elmentett kimenetei a `docs/evidence/` mappában vannak.
+
+## Az MI használatának dokumentálása
+
+A fejlesztés során használt MI-eszközöket, a három érdemi döntési esetet (azok
+indoklásával és ellenőrzésével), valamint a projekt MI-támogató elemeit a
+[`docs/MI_HASZNALAT.md`](docs/MI_HASZNALAT.md) és az
+[`AGENTS.md`](AGENTS.md) dokumentálja.

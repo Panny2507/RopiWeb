@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volleyball, Users, HeartHandshake } from 'lucide-react';
+import { Volleyball, Users, Mail, Instagram } from 'lucide-react';
 
 const leaders = [
   ['Kovács Péter', 'Körvezető'],
@@ -39,14 +39,37 @@ export default function LeadershipPage() {
             </div>
           ))}
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center max-w-3xl mx-auto mt-16">
-          <HeartHandshake className="w-10 h-10 text-vik-gold-500 mx-auto mb-3" />
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Csatlakozz A Körbe!</h3>
-          <div className="flex justify-center gap-4 text-sm font-semibold mt-5">
-            <a href="mailto:ropikorvik@gmail.com" className="text-vik-blue-700 hover:underline">ropikorvik@gmail.com</a>
-            <a href="https://instagram.com/ropikor_vik" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:underline">@ropikor_vik</a>
+        <section className="py-16 bg-white border-t border-slate-200 mt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+                Csatlakozz hozzánk!
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+                Nem csak BME-s és villanykaros hallgatóknak van lehetősége csatlakozni: a részvétel elsősorban BME Villanykarosoknak szól, de nyitva áll bármely BME-s hallgatónak, vagy akár külsős barátoknak is, akik szeretnének velünk játszani.
+              </p>
+
+              <div className="inline-flex flex-wrap items-center justify-center gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <a
+                  href="https://instagram.com/ropikor_vik"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-pink-50 text-pink-700 hover:bg-pink-100 border border-pink-200 text-sm font-bold transition-colors"
+                >
+                  <Instagram className="w-4 h-4 text-pink-600" />
+                  <span>@ropikor_vik</span>
+                </a>
+                <a
+                  href="mailto:ropikorvik@gmail.com"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-vik-blue-700 hover:bg-blue-100 border border-blue-200 text-sm font-bold transition-colors"
+                >
+                  <Mail className="w-4 h-4 text-vik-blue-700" />
+                  <span>ropikorvik@gmail.com</span>
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
